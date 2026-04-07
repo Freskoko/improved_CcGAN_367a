@@ -1,0 +1,16 @@
+
+===================================================================================================
+Traceback (most recent call last):
+  File "/home/henrik/school/improved_CcGAN_367a/Cell-200/Cell-200_64x64/CcGAN-improved/main.py", line 79, in <module>
+    hf = h5py.File(data_filename, 'r')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/h5py/_hl/files.py", line 555, in __init__
+    fid = make_fid(name, mode, userblock_size, fapl, fcpl, swmr=swmr)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/h5py/_hl/files.py", line 232, in make_fid
+    fid = h5f.open(name, flags, fapl=fapl)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 106, in h5py.h5f.open
+FileNotFoundError: [Errno 2] Unable to synchronously open file (unable to open file: name = './datasets/grass/Cell200_64x64.h5', errno = 2, error message = 'No such file or directory', flags = 0, o_flags = 0)

@@ -1,7 +1,8 @@
 
-ROOT_PATH="./Cell-200/Cell-200_64x64/CcGAN-improved"
-DATA_PATH="./datasets/Cell200"
+# ROOT_PATH="./Cell-200/Cell-200_64x64/CcGAN-improved"
 
+ROOT_PATH="."
+DATA_PATH="./datasets/grass"
 
 SEED=2020
 NITERS=5000
