@@ -1,15 +1,22 @@
 
 # ROOT_PATH="./Cell-200/Cell-200_64x64/CcGAN-improved"
 
+# 1. Go to the directory where the code lives
+cd /home/henrik/school/improved_CcGAN_367a/Cell-200/Cell-200_64x64/CcGAN-improved
+
+# 2. Set ROOT_PATH to "." because we are now inside that folder
 ROOT_PATH="."
-DATA_PATH="./datasets/grass"
+
+# ROOT_PATH="."
+# DATA_PATH="./datasets/grass"
+DATA_PATH="../../../.datasets/grass"
 
 SEED=2020
 NITERS=5000
 BATCH_SIZE_D=32
 BATCH_SIZE_G=512
-START_COUNT=1
-END_COUNT=200
+START_COUNT=1 # 1.04
+END_COUNT=185 # 185.7
 STEPSIZE_COUNT=2
 N_IMGS_PER_CELLCOUNT=10
 SIGMA=-1.0
@@ -24,6 +31,7 @@ DIM_cGAN=128
 DIM_EMBED=128
 LOSS_TYPE='vanilla'
 
+cd $ROOT_PATH
 
 echo "-------------------------------------------------------------------------------------------------"
 echo "AE"

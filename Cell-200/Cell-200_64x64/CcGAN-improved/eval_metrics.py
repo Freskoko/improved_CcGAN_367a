@@ -27,8 +27,7 @@ from torch.nn import functional as F
 
 from utils import SimpleProgressBar
 
-
-
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 ##############################################################################
 # FID scores
@@ -86,7 +85,7 @@ def cal_FID(PreNetFID, IMGSr, IMGSg, batch_size = 500, resize = None):
 
     #compute the length of extracted features
     with torch.no_grad():
-        test_img = torch.from_numpy(IMGSr[0].reshape((1,nc,img_size,img_size))).type(torch.float).cuda()
+        test_img = torch.from_numpy(IMGSr[0].reshape((1,nc,img_size,img_size))).type(torch.float).to(device)
         if resize is not None:
             test_img = nn.functional.interpolate(test_img, size = resize, scale_factor=None, mode='bilinear', align_corners=False)
         # _, test_features = PreNetFID(test_img)
@@ -102,7 +101,7 @@ def cal_FID(PreNetFID, IMGSr, IMGSg, batch_size = 500, resize = None):
         pb1 = SimpleProgressBar()
         for i in range(nr//batch_size):
             pb1.update(float(i)*100/(nr//batch_size))
-            imgr_tensor = torch.from_numpy(IMGSr[tmp:(tmp+batch_size)]).type(torch.float).cuda()
+            imgr_tensor = torch.from_numpy(IMGSr[tmp:(tmp+batch_size)]).type(torch.float).to(device)
             if resize is not None:
                 imgr_tensor = nn.functional.interpolate(imgr_tensor, size = resize, scale_factor=None, mode='bilinear', align_corners=False)
             # _, Xr_tmp = PreNetFID(imgr_tensor)
@@ -116,7 +115,7 @@ def cal_FID(PreNetFID, IMGSr, IMGSg, batch_size = 500, resize = None):
         pb2 = SimpleProgressBar()
         for j in range(ng//batch_size):
             pb2.update(float(j)*100/(ng//batch_size))
-            imgg_tensor = torch.from_numpy(IMGSg[tmp:(tmp+batch_size)]).type(torch.float).cuda()
+            imgg_tensor = torch.from_numpy(IMGSg[tmp:(tmp+batch_size)]).type(torch.float).to(device)
             if resize is not None:
                 imgg_tensor = nn.functional.interpolate(imgg_tensor, size = resize, scale_factor=None, mode='bilinear', align_corners=False)
             # _, Xg_tmp = PreNetFID(imgg_tensor)
@@ -162,7 +161,7 @@ def cal_labelscore(PreNet, images, labels_assi, min_label_before_shift, max_labe
         pb = SimpleProgressBar()
         for i in range(n//batch_size):
             pb.update(float(i)*100/(n//batch_size))
-            image_tensor = torch.from_numpy(images[tmp:(tmp+batch_size)]).type(torch.float).cuda()
+            image_tensor = torch.from_numpy(images[tmp:(tmp+batch_size)]).type(torch.float).to(device)
             if resize is not None:
                 image_tensor = nn.functional.interpolate(image_tensor, size = resize, scale_factor=None, mode='bilinear', align_corners=False)
             labels_batch, _ = PreNet(image_tensor)

@@ -78,7 +78,7 @@ os.makedirs(save_traincurves_folder, exist_ok=True)
 data_filename = args.data_path + '/Cell200_{}x{}.h5'.format(IMG_SIZE, IMG_SIZE)
 hf = h5py.File(data_filename, 'r')
 counts = hf['CellCounts'][:]
-counts = counts.astype(np.float)
+counts = counts.astype(np.float64) # fixed since np.float was deprecated
 images = hf['IMGs_grey'][:]
 hf.close()
 
@@ -159,7 +159,7 @@ if args.GAN == "cGAN": #treated as classification; convert cell counts to class 
     assert np.sum(counts_new<0)==0
     counts = counts_new
     del counts_new; gc.collect()
-    unique_counts = np.sort(np.array(list(set(counts)))).astype(np.int)
+    unique_counts = np.sort(np.array(list(set(counts)))).astype(int)
 
 else:
     counts /= args.end_count # normalize to [0,1]
@@ -551,4 +551,5 @@ if args.visualize_fake_images:
         filename_continous_fake_images = save_images_folder + '/{}_{}_sigma_{}_kappa_{}_continuous_fake_images_grid.png'.format(args.GAN, args.threshold_type, args.kernel_sigma, args.kappa)
         save_image(continuous_images_show.data, filename_continous_fake_images, nrow=n_continuous_labels, normalize=True)
 
-        print("Continuous ys: ", (normalized_continuous_cellcounts*args.end_count).astype(np.int))
+        print("Continuous ys: ", (normalized_continuous_cellcounts*args.end_count).astype(int)) # fixed since np.int was deprecated
+

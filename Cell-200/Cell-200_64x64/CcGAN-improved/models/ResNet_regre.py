@@ -160,8 +160,10 @@ def ResNet152_regre(ngpu = 1):
 
 
 if __name__ == "__main__":
-    net = ResNet34_regre(ngpu = 1).cuda()
-    x = torch.randn(16,NC,IMG_SIZE,IMG_SIZE).cuda()
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+    net = ResNet34_regre(ngpu = 1).to(device)
+    x = torch.randn(16,NC,IMG_SIZE,IMG_SIZE).to(device)
     out, features = net(x)
     print(out.size())
     print(features.size())

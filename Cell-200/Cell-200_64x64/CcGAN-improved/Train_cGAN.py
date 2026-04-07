@@ -43,7 +43,7 @@ def train_cGAN(images, labels, netG, netD, save_images_folder, save_models_folde
     else:
         trainset = IMGs_dataset(images, labels, normalize=True)
     train_dataloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
-    unique_labels = np.sort(np.array(list(set(labels)))).astype(np.int)
+    unique_labels = np.sort(np.array(list(set(labels)))).astype(int) # fixed since np.int was deprecated
 
     if save_models_folder is not None and resume_niters>0:
         save_file = save_models_folder + "/cGAN_checkpoint_intrain/cGAN_checkpoint_niters_{}.pth".format(resume_niters)
@@ -82,7 +82,7 @@ def train_cGAN(images, labels, netG, netD, save_images_folder, save_models_folde
             batch_idx = 0
 
         # training images
-        batch_train_images, batch_train_labels = dataloader_iter.next()
+        batch_train_images, batch_train_labels = next(dataloader_iter) # .next() is deprecated
         assert batch_size == batch_train_images.shape[0]
         batch_train_images = batch_train_images.type(torch.float).to(device)
         batch_train_labels = batch_train_labels.type(torch.long).to(device)

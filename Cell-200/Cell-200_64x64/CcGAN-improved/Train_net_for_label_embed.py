@@ -75,8 +75,8 @@ def train_net_embed(trainloader, testloader, net, optimizer, epochs=200, base_lr
             with torch.no_grad():
                 test_loss = 0
                 for batch_test_images, batch_test_labels in testloader:
-                    batch_test_images = batch_test_images.type(torch.float).cuda()
-                    batch_test_labels = batch_test_labels.type(torch.float).view(-1,1).cuda()
+                    batch_test_images = batch_test_images.type(torch.float).to(device)
+                    batch_test_labels = batch_test_labels.type(torch.float).view(-1,1).to(device)
                     outputs,_ = net(batch_test_images)
                     loss = criterion(outputs, batch_test_labels)
                     test_loss += loss.cpu().item()

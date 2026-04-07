@@ -1,16 +1,32 @@
 
 ===================================================================================================
+Number of images: 173
+
+ Use rule-of-thumb formula to compute kernel_sigma >>>
+
+ The std of 173 cell counts is 0.15528364682211454 so the kernel sigma is 0.05872491089801591
+
+ Start training CNN for label embedding >>>
 Traceback (most recent call last):
-  File "/home/henrik/school/improved_CcGAN_367a/Cell-200/Cell-200_64x64/CcGAN-improved/main.py", line 79, in <module>
-    hf = h5py.File(data_filename, 'r')
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/h5py/_hl/files.py", line 555, in __init__
-    fid = make_fid(name, mode, userblock_size, fapl, fcpl, swmr=swmr)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/h5py/_hl/files.py", line 232, in make_fid
-    fid = h5f.open(name, flags, fapl=fapl)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
-  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
-  File "h5py/h5f.pyx", line 106, in h5py.h5f.open
-FileNotFoundError: [Errno 2] Unable to synchronously open file (unable to open file: name = './datasets/grass/Cell200_64x64.h5', errno = 2, error message = 'No such file or directory', flags = 0, o_flags = 0)
+  File "/home/henrik/school/improved_CcGAN_367a/Cell-200/Cell-200_64x64/CcGAN-improved/main.py", line 224, in <module>
+    net_embed = train_net_embed(trainloader_embed_net, None, net_embed, optimizer_net_embed, epochs=args.epoch_cnn_embed, base_lr=base_lr_x2y, save_models_folder = save_models_folder, resumeepoch = args.resumeepoch_cnn_embed)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/henrik/school/improved_CcGAN_367a/Cell-200/Cell-200_64x64/CcGAN-improved/Train_net_for_label_embed.py", line 29, in train_net_embed
+    net=net.to(device)
+        ^^^^^^^^^^^^^^
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1384, in to
+    return self._apply(convert)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 934, in _apply
+    module._apply(fn)
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 934, in _apply
+    module._apply(fn)
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 965, in _apply
+    param_applied = fn(param)
+                    ^^^^^^^^^
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1370, in convert
+    return t.to(
+           ^^^^^
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/torch/cuda/__init__.py", line 478, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx

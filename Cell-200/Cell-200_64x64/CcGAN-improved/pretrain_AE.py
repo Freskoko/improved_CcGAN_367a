@@ -19,6 +19,7 @@ from tqdm import tqdm
 import gc
 import h5py
 
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 #############################
 # Settings
@@ -93,7 +94,7 @@ os.makedirs(save_AE_images_in_valid_folder, exist_ok=True)
 data_filename = args.data_path + '/Cell200_' + str(args.img_size) + 'x' + str(args.img_size) + '.h5'
 hf = h5py.File(data_filename, 'r')
 labels = hf['CellCounts'][:]
-labels = labels.astype(np.float)
+labels = labels.astype(np.float64) # fixed since np.float was deprecated
 images = hf['IMGs_grey'][:]
 hf.close()
 N_all = len(images)
@@ -193,7 +194,7 @@ def train_AE():
 
             batch_size_curr = batch_real_images.shape[0]
 
-            batch_real_images = batch_real_images.type(torch.float).cuda()
+            batch_real_images = batch_real_images.type(torch.float).to(device)
 
 
             batch_features = net_encoder(batch_real_images)
@@ -247,7 +248,7 @@ if args.CVMode:
         net_decoder.eval()
         with torch.no_grad():
             for batch_idx, images in enumerate(validloader):
-                images = images.type(torch.float).cuda()
+                images = images.type(torch.float).to(device)
                 features = net_encoder(images)
                 recons_images = net_decoder(features)
                 save_image(recons_images.data, save_AE_images_in_valid_folder + '/{}_recons.png'.format(batch_idx), nrow=10, normalize=True)
@@ -261,8 +262,8 @@ if args.CVMode:
 ###########################################################################################################
 
 # model initialization
-net_encoder = encoder(dim_bottleneck=args.dim_bottleneck).cuda()
-net_decoder = decoder(dim_bottleneck=args.dim_bottleneck).cuda()
+net_encoder = encoder(dim_bottleneck=args.dim_bottleneck).to(device)
+net_decoder = decoder(dim_bottleneck=args.dim_bottleneck).to(device)
 net_encoder = nn.DataParallel(net_encoder)
 net_decoder = nn.DataParallel(net_decoder)
 

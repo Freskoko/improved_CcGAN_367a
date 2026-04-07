@@ -108,11 +108,13 @@ class decoder(nn.Module):
 
 if __name__=="__main__":
     #test
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-    net_encoder = encoder(dim_bottleneck=512, ch=64).cuda()
-    net_decoder = decoder(dim_bottleneck=512, ch=64).cuda()
 
-    x = torch.randn(10, 1, 64,64).cuda()
+    net_encoder = encoder(dim_bottleneck=512, ch=64).to(device)
+    net_decoder = decoder(dim_bottleneck=512, ch=64).to(device)
+
+    x = torch.randn(10, 1, 64,64).to(device)
     f = net_encoder(x)
     xh = net_decoder(f)
     print(f.size())

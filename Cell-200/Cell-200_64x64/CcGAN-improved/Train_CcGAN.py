@@ -166,7 +166,7 @@ def train_CcGAN(kernel_sigma, kappa, train_images, train_labels, netG, netD, net
             trainset = IMGs_dataset(batch_real_images, labels=None, normalize=True)
         train_dataloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size_disc, shuffle=False)
         train_dataloader = iter(train_dataloader)
-        batch_real_images = train_dataloader.next()
+        batch_real_images = next(train_dataloader) # .next() is deprecated
         assert len(batch_real_images) == batch_size_disc
         batch_real_images = batch_real_images.type(torch.float).to(device)
         assert batch_real_images.max().item()<=1

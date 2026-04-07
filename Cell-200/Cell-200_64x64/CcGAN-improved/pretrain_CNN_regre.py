@@ -66,7 +66,7 @@ from models import *
 from utils import IMGs_dataset
 
 # cuda
-device = torch.device("cuda")
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 ngpu = torch.cuda.device_count()  # number of gpus
 
 # random seed
@@ -127,8 +127,8 @@ def train_CNN():
 
             # batch_train_images = nn.functional.interpolate(batch_train_images, size = (299,299), scale_factor=None, mode='bilinear', align_corners=False)
 
-            batch_train_images = batch_train_images.type(torch.float).cuda()
-            batch_train_labels = batch_train_labels.type(torch.float).view(-1,1).cuda()
+            batch_train_images = batch_train_images.type(torch.float).to(device)
+            batch_train_labels = batch_train_labels.type(torch.float).view(-1,1).to(device)
 
             #Forward pass
             outputs,_ = net(batch_train_images)
@@ -156,7 +156,7 @@ def valid_CNN(verbose=True):
         abs_diff_avg = 0
         total = 0
         for batch_idx, (images, labels) in enumerate(validloader):
-            images = images.type(torch.float).cuda()
+            images = images.type(torch.float).to(device)
             labels = labels.type(torch.float).view(-1).cpu().numpy()
             outputs,_ = net(images)
             outputs = outputs.view(-1).cpu().numpy()
@@ -173,10 +173,10 @@ def valid_CNN(verbose=True):
 h5py_file = args.data_path + '/Cell200_' + str(args.img_size) + 'x' + str(args.img_size) + '.h5'
 hf = h5py.File(h5py_file, 'r')
 counts_train = hf['CellCounts'][:]
-counts_train = counts_train.astype(np.float)
+counts_train = counts_train.astype(np.float64) # fixed since np.float was deprecated
 images_train = hf['IMGs_grey'][:]
 counts_valid = hf['CellCounts_test'][:]
-counts_valid = counts_valid.astype(np.float)
+counts_valid = counts_valid.astype(np.float64) # fixed since np.float was deprecated
 images_valid = hf['IMGs_grey_test'][:]
 hf.close()
 
