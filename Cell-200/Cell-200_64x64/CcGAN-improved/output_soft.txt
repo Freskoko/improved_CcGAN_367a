@@ -1,10 +1,10 @@
 
 ===================================================================================================
-Number of images: 173
+Number of images: 136
 
  Use rule-of-thumb formula to compute kernel_sigma >>>
 
- The std of 173 cell counts is 0.15528364682211454 so the kernel sigma is 0.05872491089801591
+ The std of 136 cell counts is 0.16080511311614384 so the kernel sigma is 0.06381135070109936
 
  Start training CNN for label embedding >>>
 Traceback (most recent call last):

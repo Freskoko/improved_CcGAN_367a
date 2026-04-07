@@ -42,7 +42,7 @@ echo "regression CNN for evaluation"
 python pretrain_CNN_regre.py --root_path $ROOT_PATH --data_path $DATA_PATH --start_count $START_COUNT --end_count $END_COUNT --CNN ResNet34_regre --epochs 200 --batch_size_train 256 --batch_size_valid 64 --base_lr 0.01 --seed $SEED --transform
 
 
-N_CLASS=100
+N_CLASS=20
 echo "-------------------------------------------------------------------------------------------------"
 echo "cGAN $N_CLASS"
 python main.py --root_path $ROOT_PATH --data_path $DATA_PATH --GAN cGAN --cGAN_num_classes $N_CLASS --start_count $START_COUNT --end_count $END_COUNT --stepsize_count $STEPSIZE_COUNT --num_imgs_per_count $N_IMGS_PER_CELLCOUNT --transform --niters_gan $NITERS --resume_niters_gan 0 --save_niters_freq 2000 --dim_gan $DIM_cGAN --lr_g_gan $LR_G --lr_d_gan $LR_D --batch_size_disc $BATCH_SIZE_D --batch_size_gene $BATCH_SIZE_G --seed $SEED --visualize_fake_images --comp_FID --nfake_per_label $NFAKE_PER_LABEL --samp_batch_size 1000 --FID_radius $FID_RADIUS --dump_fake_for_NIQE 2>&1 | tee output_cGAN100.txt

@@ -221,7 +221,7 @@ if args.GAN == "CcGAN":
     if not os.path.isfile(net_embed_filename_ckpt):
         print("\n Start training CNN for label embedding >>>")
         optimizer_net_embed = torch.optim.SGD(net_embed.parameters(), lr = base_lr_x2y, momentum= 0.9, weight_decay=1e-4)
-        net_embed = train_net_embed(trainloader_embed_net, None, net_embed, optimizer_net_embed, epochs=args.epoch_cnn_embed, base_lr=base_lr_x2y, save_models_folder = save_models_folder, resumeepoch = args.resumeepoch_cnn_embed)
+        net_embed = train_net_embed(trainloader_embed_net, None, net_embed, optimizer_net_embed, epochs=args.epoch_cnn_embed, base_lr=base_lr_x2y, save_models_folder = save_models_folder, resumeepoch = args.resumeepoch_cnn_embed, device=device) # add cpu device here
         # save model
         torch.save({
         'net_state_dict': net_embed.state_dict(),
@@ -238,7 +238,7 @@ if args.GAN == "CcGAN":
     if not os.path.isfile(net_y2h_filename_ckpt):
         print("\n Start training net_y2h >>>")
         optimizer_net_y2h = torch.optim.SGD(net_y2h.parameters(), lr = base_lr_y2h, momentum = 0.9, weight_decay=1e-4)
-        net_y2h = train_net_y2h(unique_counts_norm, net_y2h, net_embed, optimizer_net_y2h, epochs=args.epoch_net_y2h, base_lr=base_lr_y2h, batch_size=64)
+        net_y2h = train_net_y2h(unique_counts_norm, net_y2h, net_embed, optimizer_net_y2h, epochs=args.epoch_net_y2h, base_lr=base_lr_y2h, batch_size=64, device=device) # added cpu device here
         # save model
         torch.save({
         'net_state_dict': net_y2h.state_dict(),
