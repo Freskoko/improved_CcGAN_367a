@@ -75,6 +75,9 @@ os.makedirs(save_traincurves_folder, exist_ok=True)
 '''                                    Data loader                                 '''
 #######################################################################################
 # data loader
+
+print("started script")
+
 data_filename = args.data_path + '/Cell200_{}x{}.h5'.format(IMG_SIZE, IMG_SIZE)
 hf = h5py.File(data_filename, 'r')
 counts = hf['CellCounts'][:]
@@ -84,6 +87,8 @@ hf.close()
 
 raw_images = copy.deepcopy(images)
 raw_counts = copy.deepcopy(counts)
+
+print("images copied")
 
 ##############
 ### show some real  images
@@ -101,6 +106,7 @@ if args.show_real_imgs:
     images_show = torch.from_numpy(images_show)
     save_image(images_show.data, save_images_folder +'/real_images_grid_{}x{}.png'.format(nrow, ncol), nrow=ncol, normalize=True)
 
+print("grab images for training gan")
 
 ##############
 # images for training GAN
@@ -197,6 +203,7 @@ else:
 '''               Pre-trained CNN and GAN for label embedding                       '''
 #######################################################################################
 if args.GAN == "CcGAN":
+    print("CcGAN start")
     net_embed_filename_ckpt = save_models_folder + '/ckpt_{}_epoch_{}_seed_{}.pth'.format(args.net_embed, args.epoch_cnn_embed, args.seed)
     net_y2h_filename_ckpt = save_models_folder + '/ckpt_net_y2h_epoch_{}_seed_{}.pth'.format(args.epoch_net_y2h, args.seed)
 
@@ -206,6 +213,7 @@ if args.GAN == "CcGAN":
         trainset = IMGs_dataset(images, counts, normalize=True)
     trainloader_embed_net = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size_embed, shuffle=True)
 
+    print("starting debug")
     if args.net_embed == "ResNet18_embed":
         net_embed = ResNet18_embed(dim_embed=args.dim_embed, ngpu = NGPU)
     elif args.net_embed == "ResNet34_embed":
@@ -214,8 +222,12 @@ if args.GAN == "CcGAN":
         net_embed = ResNet50_embed(dim_embed=args.dim_embed, ngpu = NGPU)
     net_embed = net_embed.to(device)
 
+    print("start model y2h")
+
     net_y2h = model_y2h(dim_embed=args.dim_embed)
     net_y2h = net_y2h.to(device)
+
+    print("train model started")
 
     ## (1). Train net_embed first: x2h+h2y
     if not os.path.isfile(net_embed_filename_ckpt):
@@ -249,6 +261,8 @@ if args.GAN == "CcGAN":
         checkpoint = torch.load(net_y2h_filename_ckpt)
         net_y2h.load_state_dict(checkpoint['net_state_dict'])
     #end not os.path.isfile
+
+    print("run tests")
 
     ##some simple test
     indx_tmp = np.arange(len(unique_counts_norm))
@@ -359,6 +373,7 @@ print("GAN training finished; Time elapses: {}s".format(stop - start))
 '''                                  Evaluation                                     '''
 #######################################################################################
 if args.comp_FID:
+    print("Start evalulation")
     #for FID
     PreNetFID = encoder(dim_bottleneck=512).to(device)
     PreNetFID = nn.DataParallel(PreNetFID)
