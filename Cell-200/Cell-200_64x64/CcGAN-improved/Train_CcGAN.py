@@ -282,11 +282,18 @@ def SampCcGAN_given_label(netG, net_y2h, label, path=None, NFAKE = 10000, batch_
     fake_labels = np.ones(NFAKE) * label #use assigned label
 
     if path is not None:
+        # Rescale from [-1, 1] to [0, 255]
         raw_fake_images = (fake_images*0.5+0.5)*255.0
         raw_fake_images = raw_fake_images.astype(np.uint8)
         for i in range(NFAKE):
             filename = path + '/' + str(i) + '.jpg'
-            im = Image.fromarray(raw_fake_images[i][0], mode='RGB')
-            im = im.save(filename)
+
+            # FIX: Transpose from (C, H, W) to (H, W, C) for PIL
+            # And change mode to 'RGB'
+            img_np = raw_fake_images[i].transpose(1, 2, 0) 
+            im = Image.fromarray(img_np, mode='RGB')
+
+            im.save(filename)
+
 
     return fake_images, fake_labels
