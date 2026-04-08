@@ -425,9 +425,14 @@ if args.comp_FID:
             label_i = round(fake_labels_assigned[i]*args.end_count)
             filename_i = dump_fake_images_folder + "/{}_{}.png".format(i, label_i)
             os.makedirs(os.path.dirname(filename_i), exist_ok=True)
+            
             image_i = fake_images[i]
             image_i = ((image_i*0.5+0.5)*255.0).astype(np.uint8)
-            image_i_pil = Image.fromarray(image_i[0])
+            
+            # FIX: Transpose to (H, W, C) and save as RGB
+            image_i_transposed = image_i.transpose(1, 2, 0)
+            image_i_pil = Image.fromarray(image_i_transposed, mode='RGB')
+            
             image_i_pil.save(filename_i)
         #end for i
 

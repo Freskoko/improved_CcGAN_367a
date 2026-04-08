@@ -266,6 +266,7 @@ def SampCcGAN_given_label(netG, net_y2h, label, path=None, NFAKE = 10000, batch_
     fake_images = np.zeros((NFAKE+batch_size, NC, IMG_SIZE, IMG_SIZE), dtype=np.float64) # np.float is deprecated
     netG=netG.to(device)
     netG.eval()
+    print(f"DEBUG: fake_images shape is {fake_images.shape}")
 
     with torch.no_grad():
         tmp = 0
@@ -285,12 +286,27 @@ def SampCcGAN_given_label(netG, net_y2h, label, path=None, NFAKE = 10000, batch_
         # Rescale from [-1, 1] to [0, 255]
         raw_fake_images = (fake_images*0.5+0.5)*255.0
         raw_fake_images = raw_fake_images.astype(np.uint8)
+
+        print(f"Sampling Info: Array shape {raw_fake_images.shape}, Max value {raw_fake_images.max()}")
+
         for i in range(NFAKE):
-            filename = path + '/' + str(i) + '.jpg'
+            filename = path + '/' + str(i) + '.png'
 
             # FIX: Transpose from (C, H, W) to (H, W, C) for PIL
             # And change mode to 'RGB'
-            img_np = raw_fake_images[i].transpose(1, 2, 0) 
+            img_np = raw_fake_images[i].transpose(1, 2, 0)
+
+            if img_np.shape[2] == 1:
+                print("CRITICAL: The generator is only outputting 1 channel!")
+
+            # Inside the for loop in SampCcGAN_given_label
+            chan_std = np.std(img_np, axis=2) # Standard deviation across the R,G,B axis
+            if np.mean(chan_std) < 1.0:
+                print(f"Frame {i}: Channels are nearly identical (Mean STD: {np.mean(chan_std)})")
+            else:
+                print(f"Frame {i}: Color detected! (Mean STD: {np.mean(chan_std)})")
+
+
             im = Image.fromarray(img_np, mode='RGB')
 
             im.save(filename)
