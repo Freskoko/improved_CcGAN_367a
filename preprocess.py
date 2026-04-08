@@ -7,10 +7,13 @@ import os
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
+# OUTPUT_NAME = "UTKFace_64x64"
+OUTPUT_NAME = "Cell200_64x64"
+
 # --- SETTINGS ---
 CSV_PATH = Path("./.datasets/grass/train.csv")
 IMG_DIR = Path("./.datasets/grass/")
-OUTPUT_H5 = Path("./.datasets/grass/Cell200_64x64.h5")
+OUTPUT_H5 = Path(f"./.datasets/grass/{OUTPUT_NAME}.h5")
 IMG_SIZE = 64
 PRIMARY_TARGET = "Dry_Total_g"
 
@@ -35,16 +38,18 @@ for _, row in tqdm(df_wide.iterrows(), total=len(df_wide)):
     img_full_path = IMG_DIR / row['image_path']
 
     if not img_full_path.exists():
+        print(f"warning cannot find image {img_full_path}")
         continue
 
-    img = Image.open(img_full_path).convert('L')
+    img = Image.open(img_full_path).convert('RGB')
     img = img.resize((IMG_SIZE, IMG_SIZE), Image.Resampling.LANCZOS)
 
-    imgs_list.append(np.array(img))
+    img_array = np.array(img).transpose(2, 0, 1)
+    imgs_list.append(img_array)
     labels_list.append(row[PRIMARY_TARGET])
 
 # Convert to numpy arrays
-imgs_all = np.array(imgs_list).reshape(-1, 1, IMG_SIZE, IMG_SIZE).astype(np.uint8)
+imgs_all = np.array(imgs_list).astype(np.uint8)
 labels_all = np.array(labels_list).astype(np.float32)
 
 # --- NEW: STEP 3. Split into Train and Test (Validation) ---
@@ -57,11 +62,15 @@ train_imgs, test_imgs, train_labels, test_labels = train_test_split(
 # 4. Save to H5 with the names the CcGAN repo expects
 with h5py.File(OUTPUT_H5, 'w') as f:
     # Training set
+    # f.create_dataset('images', data=train_imgs)
+    # f.create_dataset('labels', data=train_labels)
+
     f.create_dataset('IMGs_grey', data=train_imgs)
     f.create_dataset('CellCounts', data=train_labels)
     # Validation/Test set
-    f.create_dataset('IMGs_grey_test', data=test_imgs)
-    f.create_dataset('CellCounts_test', data=test_labels)
+    # f.create_dataset('labels', data=test_labels)
+    f.create_dataset('IMGs_grey_test', data=train_imgs)
+    f.create_dataset('CellCounts_test', data=train_labels)
 
 print(f"\nSuccess! Created {OUTPUT_H5}")
 print(f"Train samples: {len(train_labels)}")

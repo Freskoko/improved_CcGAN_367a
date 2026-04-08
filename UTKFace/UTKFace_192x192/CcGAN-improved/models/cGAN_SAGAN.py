@@ -260,16 +260,16 @@ if __name__ == "__main__":
     
     num_classes = 10
 
-    netG = cGAN_SAGAN_Generator(z_dim=128, num_classes=num_classes, g_conv_dim=128).cuda()
-    netD = cGAN_SAGAN_Discriminator(num_classes=num_classes, d_conv_dim=128).cuda()
+    netG = cGAN_SAGAN_Generator(z_dim=128, num_classes=num_classes, g_conv_dim=128).to(device)()
+    netD = cGAN_SAGAN_Discriminator(num_classes=num_classes, d_conv_dim=128).to(device)()
 
     n = 4
     # target = torch.randint(high=num_classes, size=(1,n)) # set size (2,10) for MHE
     # y = torch.zeros(n, num_classes)
     # y[range(y.shape[0]), target]=1
-    # y = y.type(torch.long).cuda()
-    y = torch.randint(high=num_classes, size=(n,)).type(torch.long).cuda()
-    z = torch.randn(n, 128).cuda()
+    # y = y.type(torch.long).to(device)()
+    y = torch.randint(high=num_classes, size=(n,)).type(torch.long).to(device)()
+    z = torch.randn(n, 128).to(device)()
     x = netG(z,y)
     o = netD(x,y)
     print(x.size())

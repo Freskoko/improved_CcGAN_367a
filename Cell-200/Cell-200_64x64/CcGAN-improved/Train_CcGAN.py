@@ -263,7 +263,7 @@ def SampCcGAN_given_label(netG, net_y2h, label, path=None, NFAKE = 10000, batch_
     '''
     if batch_size>NFAKE:
         batch_size = NFAKE
-    fake_images = np.zeros((NFAKE+batch_size, NC, IMG_SIZE, IMG_SIZE), dtype=np.float)
+    fake_images = np.zeros((NFAKE+batch_size, NC, IMG_SIZE, IMG_SIZE), dtype=np.float64) # np.float is deprecated
     netG=netG.to(device)
     netG.eval()
 
@@ -286,7 +286,7 @@ def SampCcGAN_given_label(netG, net_y2h, label, path=None, NFAKE = 10000, batch_
         raw_fake_images = raw_fake_images.astype(np.uint8)
         for i in range(NFAKE):
             filename = path + '/' + str(i) + '.jpg'
-            im = Image.fromarray(raw_fake_images[i][0], mode='L')
+            im = Image.fromarray(raw_fake_images[i][0], mode='RGB')
             im = im.save(filename)
 
     return fake_images, fake_labels

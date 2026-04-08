@@ -74,6 +74,8 @@ torch.backends.cudnn.deterministic = True
 cudnn.benchmark = False
 np.random.seed(args.seed)
 
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 # directories for checkpoint, images and log files
 save_models_folder = wd + '/output/eval_models'
 os.makedirs(save_models_folder, exist_ok=True)
@@ -172,7 +174,7 @@ def train_AE():
 
             batch_size_curr = batch_real_images.shape[0]
 
-            batch_real_images = batch_real_images.type(torch.float).cuda()
+            batch_real_images = batch_real_images.type(torch.float).to(device)
 
 
             batch_features = net_encoder(batch_real_images)
@@ -224,7 +226,7 @@ if args.CVMode:
         net_decoder.eval()
         with torch.no_grad():
             for batch_idx, images in enumerate(validloader):
-                images = images.type(torch.float).cuda()
+                images = images.type(torch.float).to(device)
                 features = net_encoder(images)
                 recons_images = net_decoder(features)
                 save_image(recons_images.data, save_AE_images_in_valid_folder + '/{}_recons.png'.format(batch_idx), nrow=10, normalize=True)
@@ -238,8 +240,8 @@ if args.CVMode:
 ###########################################################################################################
 
 # model initialization
-net_encoder = encoder(dim_bottleneck=args.dim_bottleneck).cuda()
-net_decoder = decoder(dim_bottleneck=args.dim_bottleneck).cuda()
+net_encoder = encoder(dim_bottleneck=args.dim_bottleneck).to(device)
+net_decoder = decoder(dim_bottleneck=args.dim_bottleneck).to(device)
 net_encoder = nn.DataParallel(net_encoder)
 net_decoder = nn.DataParallel(net_decoder)
 

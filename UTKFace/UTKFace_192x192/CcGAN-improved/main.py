@@ -46,6 +46,8 @@ torch.backends.cudnn.deterministic = True
 cudnn.benchmark = False
 np.random.seed(args.seed)
 
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 #-------------------------------
 # output folders
 path_to_output = os.path.join(wd, "output/output_{}_arch_{}".format(args.GAN, args.GAN_arch))
@@ -267,11 +269,11 @@ if args.GAN == "CcGAN":
         net_embed = ResNet34_embed(dim_embed=args.dim_embed)
     elif args.net_embed == "ResNet50_embed":
         net_embed = ResNet50_embed(dim_embed=args.dim_embed)
-    net_embed = net_embed.cuda()
+    net_embed = net_embed.to(device)
     net_embed = nn.DataParallel(net_embed)
 
     net_y2h = model_y2h(dim_embed=args.dim_embed)
-    net_y2h = net_y2h.cuda()
+    net_y2h = net_y2h.to(device)
     net_y2h = nn.DataParallel(net_y2h)
 
     ## (1). Train net_embed first: x2h+h2y
@@ -315,9 +317,9 @@ if args.GAN == "CcGAN":
     np.random.shuffle(indx_tmp)
     indx_tmp = indx_tmp[:10]
     labels_tmp = unique_labels_norm_embed[indx_tmp].reshape(-1,1)
-    labels_tmp = torch.from_numpy(labels_tmp).type(torch.float).cuda()
+    labels_tmp = torch.from_numpy(labels_tmp).type(torch.float).to(device)
     epsilons_tmp = np.random.normal(0, 0.2, len(labels_tmp))
-    epsilons_tmp = torch.from_numpy(epsilons_tmp).view(-1,1).type(torch.float).cuda()
+    epsilons_tmp = torch.from_numpy(epsilons_tmp).view(-1,1).type(torch.float).to(device)
     labels_noise_tmp = torch.clamp(labels_tmp+epsilons_tmp, 0.0, 1.0)
     net_embed.eval()
     net_h2y = net_embed.module.h2y
@@ -394,7 +396,7 @@ if args.GAN == "cGAN":
     else:
         print("Loading pre-trained generator >>>")
         checkpoint = torch.load(Filename_GAN)
-        netG = cGAN_SAGAN_Generator(z_dim=args.dim_gan, num_classes=args.cGAN_num_classes).cuda()
+        netG = cGAN_SAGAN_Generator(z_dim=args.dim_gan, num_classes=args.cGAN_num_classes).to(device)
         netG = nn.DataParallel(netG)
         netG.load_state_dict(checkpoint['netG_state_dict'])
 
@@ -431,7 +433,7 @@ elif args.GAN == "cGAN-concat":
     else:
         print("Loading pre-trained generator >>>")
         checkpoint = torch.load(Filename_GAN)
-        netG = cGAN_concat_SAGAN_Generator(z_dim=args.dim_gan).cuda()
+        netG = cGAN_concat_SAGAN_Generator(z_dim=args.dim_gan).to(device)
         netG = nn.DataParallel(netG)
         netG.load_state_dict(checkpoint['netG_state_dict'])
 
@@ -465,7 +467,7 @@ elif args.GAN == "CcGAN":
     else:
         print("Loading pre-trained generator >>>")
         checkpoint = torch.load(Filename_GAN)
-        netG = CcGAN_SAGAN_Generator(dim_z=args.dim_gan, dim_embed=args.dim_embed).cuda()
+        netG = CcGAN_SAGAN_Generator(dim_z=args.dim_gan, dim_embed=args.dim_embed).to(device)
         netG = nn.DataParallel(netG)
         netG.load_state_dict(checkpoint['netG_state_dict'])
 
@@ -483,20 +485,20 @@ print("GAN training finished; Time elapses: {}s".format(stop - start))
 #######################################################################################
 if args.comp_FID:
     #for FID
-    PreNetFID = encoder(dim_bottleneck=512).cuda()
+    PreNetFID = encoder(dim_bottleneck=512).to(device)
     PreNetFID = nn.DataParallel(PreNetFID)
     Filename_PreCNNForEvalGANs = os.path.join(args.eval_ckpt_path, 'ckpt_AE_epoch_200_seed_2021_CVMode_False.pth')
     checkpoint_PreNet = torch.load(Filename_PreCNNForEvalGANs)
     PreNetFID.load_state_dict(checkpoint_PreNet['net_encoder_state_dict'])
 
     # Diversity: entropy of predicted races within each eval center
-    PreNetDiversity = ResNet34_class_eval(num_classes=5, ngpu = torch.cuda.device_count()).cuda() #5 races
+    PreNetDiversity = ResNet34_class_eval(num_classes=5, ngpu = torch.cuda.device_count()).to(device) #5 races
     Filename_PreCNNForEvalGANs_Diversity = os.path.join(args.eval_ckpt_path, 'ckpt_PreCNNForEvalGANs_ResNet34_class_epoch_200_seed_2021_classify_5_races_CVMode_False.pth')
     checkpoint_PreNet = torch.load(Filename_PreCNNForEvalGANs_Diversity)
     PreNetDiversity.load_state_dict(checkpoint_PreNet['net_state_dict'])
 
     # for LS
-    PreNetLS = ResNet34_regre_eval(ngpu = torch.cuda.device_count()).cuda()
+    PreNetLS = ResNet34_regre_eval(ngpu = torch.cuda.device_count()).to(device)
     Filename_PreCNNForEvalGANs_LS = os.path.join(args.eval_ckpt_path, 'ckpt_PreCNNForEvalGANs_ResNet34_regre_epoch_200_seed_2021_CVMode_False.pth')
     checkpoint_PreNet = torch.load(Filename_PreCNNForEvalGANs_LS)
     PreNetLS.load_state_dict(checkpoint_PreNet['net_state_dict'])
@@ -651,13 +653,13 @@ if args.visualize_fake_images:
     # Second, fix z but increase y; check whether there is a continuous change, only for CcGAN
     if args.GAN == "CcGAN":
         normalized_continuous_labels = displayed_normalized_labels; n_continuous_labels=len(normalized_continuous_labels)
-        z = torch.randn(1, args.dim_gan, dtype=torch.float).cuda()
+        z = torch.randn(1, args.dim_gan, dtype=torch.float).to(device)
         continuous_images_show = torch.zeros(n_continuous_labels, args.num_channels, args.img_size, args.img_size, dtype=torch.float)
         netG.eval()
         with torch.no_grad():
             for i in range(n_continuous_labels):
                 y = np.ones(1) * normalized_continuous_labels[i]
-                y = torch.from_numpy(y).type(torch.float).view(-1,1).cuda()
+                y = torch.from_numpy(y).type(torch.float).view(-1,1).to(device)
                 fake_image_i = netG(z, net_y2h(y))
                 continuous_images_show[i,:,:,:] = fake_image_i.cpu()
 

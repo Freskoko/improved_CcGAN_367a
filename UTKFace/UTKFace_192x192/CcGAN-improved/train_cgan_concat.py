@@ -55,8 +55,8 @@ def hflip_images(batch_images):
 
 def train_cgan_concat(images, labels, netG, netD, save_images_folder, save_models_folder = None):
 
-    netG = netG.cuda()
-    netD = netD.cuda()
+    netG = netG.to(device)
+    netD = netD.to(device)
 
     optimizerG = torch.optim.Adam(netG.parameters(), lr=lr_g, betas=(0.5, 0.999))
     optimizerD = torch.optim.Adam(netD.parameters(), lr=lr_d, betas=(0.5, 0.999))
@@ -77,7 +77,7 @@ def train_cgan_concat(images, labels, netG, netD, save_images_folder, save_model
 
     # printed images with labels between the 5-th quantile and 95-th quantile of training labels
     n_row=10; n_col = n_row
-    z_fixed = torch.randn(n_row*n_col, dim_gan, dtype=torch.float).cuda()
+    z_fixed = torch.randn(n_row*n_col, dim_gan, dtype=torch.float).to(device)
     start_label = np.quantile(labels, 0.05)
     end_label = np.quantile(labels, 0.95)
     selected_labels = np.linspace(start_label, end_label, num=n_row)
@@ -87,7 +87,7 @@ def train_cgan_concat(images, labels, netG, netD, save_images_folder, save_model
         for j in range(n_col):
             y_fixed[i*n_col+j] = curr_label
     print(y_fixed)
-    y_fixed = torch.from_numpy(y_fixed).type(torch.float).view(-1,1).cuda()
+    y_fixed = torch.from_numpy(y_fixed).type(torch.float).view(-1,1).to(device)
 
 
     batch_idx = 0
@@ -111,11 +111,11 @@ def train_cgan_concat(images, labels, netG, netD, save_images_folder, save_model
         # get training images
         _, batch_train_labels = dataloader_iter.next()
         assert batch_size == batch_train_labels.shape[0]
-        batch_train_labels = batch_train_labels.type(torch.long).cuda()
+        batch_train_labels = batch_train_labels.type(torch.long).to(device)
         batch_idx+=1
 
         # Sample noise and labels as generator input
-        z = torch.randn(batch_size, dim_gan, dtype=torch.float).cuda()
+        z = torch.randn(batch_size, dim_gan, dtype=torch.float).to(device)
 
         #generate fake images
         batch_fake_images = netG(z, batch_train_labels)
@@ -151,9 +151,9 @@ def train_cgan_concat(images, labels, netG, netD, save_images_folder, save_model
             # get training images
             batch_train_images, batch_train_labels = dataloader_iter.next()
             assert batch_size == batch_train_images.shape[0]
-            batch_train_images = batch_train_images.type(torch.float).cuda()
+            batch_train_images = batch_train_images.type(torch.float).to(device)
             batch_train_images = hflip_images(batch_train_images)
-            batch_train_labels = batch_train_labels.type(torch.long).cuda()
+            batch_train_labels = batch_train_labels.type(torch.long).to(device)
             batch_idx+=1
 
             # Measure discriminator's ability to classify real from generated samples
@@ -228,15 +228,15 @@ def sample_cgan_concat_given_labels(netG, given_labels, batch_size = 100, denorm
     ## concat to avoid out of index errors
     labels = np.concatenate((labels, labels[0:batch_size]), axis=0)
 
-    netG=netG.cuda()
+    netG=netG.to(device)
     netG.eval()
     with torch.no_grad():
         if verbose:
             pb = SimpleProgressBar()
         tmp = 0
         while tmp < nfake:
-            z = torch.randn(batch_size, dim_gan, dtype=torch.float).cuda()
-            c = torch.from_numpy(labels[tmp:(tmp+batch_size)]).type(torch.float).cuda()
+            z = torch.randn(batch_size, dim_gan, dtype=torch.float).to(device)
+            c = torch.from_numpy(labels[tmp:(tmp+batch_size)]).type(torch.float).to(device)
             batch_fake_images = netG(z, c)
             if denorm: #denorm imgs to save memory
                 assert batch_fake_images.max().item()<=1.0 and batch_fake_images.min().item()>=-1.0

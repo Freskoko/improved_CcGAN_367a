@@ -176,8 +176,8 @@ class model_y2h(nn.Module):
 
 
 if __name__ == "__main__":
-    net = ResNet34_embed(dim_embed=128).cuda()
-    x = torch.randn(16,NC,IMG_SIZE,IMG_SIZE).cuda()
+    net = ResNet34_embed(dim_embed=128).to(device)()
+    x = torch.randn(16,NC,IMG_SIZE,IMG_SIZE).to(device)()
     out, features = net(x)
     print(out.size())
     print(features.size())

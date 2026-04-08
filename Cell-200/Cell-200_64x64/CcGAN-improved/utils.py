@@ -52,13 +52,15 @@ class IMGs_dataset(torch.utils.data.Dataset):
         self.vflip = vflip
 
     def __getitem__(self, index):
-
-        image = self.images[index]
+        image = self.images[index] # Expected shape: (3, 64, 64)
 
         if self.rotate or self.hflip or self.vflip:
-            assert np.max(image)>1
-            image = image[0] #CxWxH ----> WxH
-            PIL_im = Image.fromarray(np.uint8(image), mode = 'L')
+            # 1. Prepare for PIL: (C, H, W) -> (H, W, C)
+            image = image.transpose(1, 2, 0) 
+            
+            # 2. Convert to RGB PIL Image
+            PIL_im = Image.fromarray(np.uint8(image), mode='RGB')
+            
             if self.rotate:
                 degrees = np.array(self.degrees)
                 np.random.shuffle(degrees)
@@ -68,18 +70,20 @@ class IMGs_dataset(torch.utils.data.Dataset):
                 PIL_im = PIL_im.transpose(Image.FLIP_LEFT_RIGHT)
             if self.vflip:
                 PIL_im = PIL_im.transpose(Image.FLIP_TOP_BOTTOM)
-            image = np.array(PIL_im)
-            image = image[np.newaxis,:,:]
+            
+            # 3. Convert back to Numpy and Transpose to (C, H, W)
+            image = np.array(PIL_im).transpose(2, 0, 1)
 
+        # 4. Normalization (Works on all channels at once)
         if self.normalize:
-            image = image/255.0
-            image = (image-0.5)/0.5
+            image = image / 255.0
+            image = (image - 0.5) / 0.5
 
         if self.labels is not None:
             label = self.labels[index]
-            return (image, label)
-        else:
-            return image
+            return image, label
+        
+        return image
 
     def __len__(self):
         return self.n_images

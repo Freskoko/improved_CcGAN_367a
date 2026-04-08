@@ -288,15 +288,15 @@ class CcGAN_SAGAN_Discriminator(nn.Module):
 
 
 if __name__ == "__main__":
-    netG = CcGAN_SAGAN_Generator(dim_z=256, dim_embed=128, gene_ch=128).cuda()
-    netD = CcGAN_SAGAN_Discriminator(dim_embed=128, disc_ch=128).cuda()
+    netG = CcGAN_SAGAN_Generator(dim_z=256, dim_embed=128, gene_ch=128).to(device)
+    netD = CcGAN_SAGAN_Discriminator(dim_embed=128, disc_ch=128).to(device)
 
     # netG = nn.DataParallel(netG)
     # netD = nn.DataParallel(netD)
 
     N=4
-    z = torch.randn(N, 256).cuda()
-    y = torch.randn(N, 128).cuda()
+    z = torch.randn(N, 256).to(device)
+    y = torch.randn(N, 128).to(device)
     x = netG(z,y)
     o = netD(x,y)
     print(x.size())

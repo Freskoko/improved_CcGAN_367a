@@ -27,7 +27,7 @@ def train_net_embed(net, net_name, trainloader, testloader, epochs=200, resume_e
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr
 
-    net = net.cuda()
+    net = net.to(device)
     criterion = nn.MSELoss()
     optimizer = torch.optim.SGD(net.parameters(), lr = lr_base, momentum= 0.9, weight_decay=weight_decay)
 
@@ -49,8 +49,8 @@ def train_net_embed(net, net_name, trainloader, testloader, epochs=200, resume_e
 
             # batch_train_images = nn.functional.interpolate(batch_train_images, size = (299,299), scale_factor=None, mode='bilinear', align_corners=False)
 
-            batch_train_images = batch_train_images.type(torch.float).cuda()
-            batch_train_labels = batch_train_labels.type(torch.float).view(-1,1).cuda()
+            batch_train_images = batch_train_images.type(torch.float).to(device)
+            batch_train_labels = batch_train_labels.type(torch.float).view(-1,1).to(device)
 
             #Forward pass
             outputs, _ = net(batch_train_images)
@@ -72,8 +72,8 @@ def train_net_embed(net, net_name, trainloader, testloader, epochs=200, resume_e
             with torch.no_grad():
                 test_loss = 0
                 for batch_test_images, batch_test_labels in testloader:
-                    batch_test_images = batch_test_images.type(torch.float).cuda()
-                    batch_test_labels = batch_test_labels.type(torch.float).view(-1,1).cuda()
+                    batch_test_images = batch_test_images.type(torch.float).to(device)
+                    batch_test_labels = batch_test_labels.type(torch.float).view(-1,1).to(device)
                     outputs,_ = net(batch_test_images)
                     loss = criterion(outputs, batch_test_labels)
                     test_loss += loss.cpu().item()
@@ -150,12 +150,12 @@ def train_net_y2h(unique_labels_norm, net_y2h, net_embed, epochs=500, lr_base=0.
         adjust_learning_rate_2(optimizer_y2h, epoch)
         for _, batch_labels in enumerate(trainloader):
 
-            batch_labels = batch_labels.type(torch.float).view(-1,1).cuda()
+            batch_labels = batch_labels.type(torch.float).view(-1,1).to(device)
 
             # generate noises which will be added to labels
             batch_size_curr = len(batch_labels)
             batch_gamma = np.random.normal(0, 0.2, batch_size_curr)
-            batch_gamma = torch.from_numpy(batch_gamma).view(-1,1).type(torch.float).cuda()
+            batch_gamma = torch.from_numpy(batch_gamma).view(-1,1).type(torch.float).to(device)
 
             # add noise to labels
             batch_labels_noise = torch.clamp(batch_labels+batch_gamma, 0.0, 1.0)

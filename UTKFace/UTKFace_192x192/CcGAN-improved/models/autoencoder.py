@@ -115,10 +115,10 @@ class decoder(nn.Module):
 if __name__=="__main__":
     #test
 
-    net_encoder = encoder(dim_bottleneck=512, ch=64).cuda()
-    net_decoder = decoder(dim_bottleneck=512, ch=64).cuda()
+    net_encoder = encoder(dim_bottleneck=512, ch=64).to(device)
+    net_decoder = decoder(dim_bottleneck=512, ch=64).to(device)
 
-    x = torch.randn(10, 3, 192, 192).cuda()
+    x = torch.randn(10, 3, 192, 192).to(device)
     f = net_encoder(x)
     xh = net_decoder(f)
     print(f.size())

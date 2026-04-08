@@ -1,0 +1,26 @@
+
+===================================================================================================
+
+ Original set has 224 images; For each label, take no more than 2000 images>>>
+  0%|          | 0/55 [00:00<?, ?it/s]100%|██████████| 55/55 [00:00<00:00, 149893.91it/s]
+224 images left.
+Start replicating monority samples >>>
+  0%|          | 0/55 [00:00<?, ?it/s] 33%|███▎      | 18/55 [00:00<00:00, 162.82it/s] 64%|██████▎   | 35/55 [00:00<00:00, 105.61it/s] 85%|████████▌ | 47/55 [00:00<00:00, 80.00it/s] 100%|██████████| 55/55 [00:00<00:00, 79.30it/s]
+We replicate 10776 images and labels 
+
+
+ Range of unnormalized labels: (1.0,60.0)
+
+ Range of normalized labels: (0.016666666666666666,1.0)
+cGAN-concat: SAGAN.
+
+ Begin Training cGAN-concat:
+./output/output_cGAN-concat_arch_SAGAN/saved_models/ckpt_SAGAN_niters_10_nDsteps_4_seed_2021.pth
+Traceback (most recent call last):
+  File "/home/henrik/school/improved_CcGAN_367a/UTKFace/UTKFace_192x192/CcGAN-improved/main.py", line 427, in <module>
+    netG, netD = train_cgan_concat(images, labels, netG, netD, save_images_folder=save_images_in_train_folder, save_models_folder = save_models_folder)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/henrik/school/improved_CcGAN_367a/UTKFace/UTKFace_192x192/CcGAN-improved/train_cgan_concat.py", line 58, in train_cgan_concat
+    netG = netG.to(device)
+                   ^^^^^^
+NameError: name 'device' is not defined

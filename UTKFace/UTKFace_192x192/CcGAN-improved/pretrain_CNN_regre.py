@@ -209,8 +209,8 @@ def train_CNN():
 
             # batch_train_images = nn.functional.interpolate(batch_train_images, size = (299,299), scale_factor=None, mode='bilinear', align_corners=False)
 
-            batch_train_images = batch_train_images.type(torch.float).cuda()
-            batch_train_labels = batch_train_labels.type(torch.float).view(-1,1).cuda()
+            batch_train_images = batch_train_images.type(torch.float).to(device)
+            batch_train_labels = batch_train_labels.type(torch.float).view(-1,1).to(device)
 
             #Forward pass
             outputs,_ = net(batch_train_images)
@@ -241,7 +241,7 @@ if args.CVMode:
             abs_diff_avg = 0
             total = 0
             for batch_idx, (images, labels) in enumerate(validloader):
-                images = images.type(torch.float).cuda()
+                images = images.type(torch.float).to(device)
                 labels = labels.type(torch.float).view(-1).cpu().numpy()
                 outputs,_ = net(images)
                 outputs = outputs.view(-1).cpu().numpy()

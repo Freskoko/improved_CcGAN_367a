@@ -1,0 +1,12 @@
+usage: pretrain_AE.py [-h] [--root_path ROOT_PATH] [--data_path DATA_PATH]
+                      [--dim_bottleneck DIM_BOTTLENECK] [--epochs N]
+                      [--resume_epoch RESUME_EPOCH]
+                      [--save_ckpt_freq SAVE_CKPT_FREQ] [--batch_size_train N]
+                      [--batch_size_valid N] [--base_lr BASE_LR]
+                      [--lr_decay_epochs LR_DECAY_EPOCHS]
+                      [--lr_decay_factor LR_DECAY_FACTOR]
+                      [--lambda_sparsity LAMBDA_SPARSITY]
+                      [--weight_dacay WEIGHT_DACAY] [--seed S] [--CVMode]
+                      [--transform] [--img_size N] [--min_label MIN_LABEL]
+                      [--max_label MAX_LABEL]
+pretrain_AE.py: error: argument --img_size: invalid choice: 192 (choose from 64)

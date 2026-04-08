@@ -20,7 +20,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 IMG_SIZE=64
-NC=1
+NC=3
 
 
 class BasicBlock(nn.Module):

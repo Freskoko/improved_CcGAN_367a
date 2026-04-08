@@ -67,7 +67,7 @@ from utils import IMGs_dataset
 
 
 # cuda
-device = torch.device("cuda")
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 ngpu = torch.cuda.device_count()  # number of gpus
 
 # random seed
@@ -179,8 +179,8 @@ def train_CNN():
 
             # batch_train_images = nn.functional.interpolate(batch_train_images, size = (299,299), scale_factor=None, mode='bilinear', align_corners=False)
 
-            batch_train_images = batch_train_images.type(torch.float).cuda()
-            batch_train_labels = batch_train_labels.type(torch.long).cuda()
+            batch_train_images = batch_train_images.type(torch.float).to(device)
+            batch_train_labels = batch_train_labels.type(torch.long).to(device)
 
             #Forward pass
             outputs,_ = net(batch_train_images)
@@ -212,8 +212,8 @@ if args.CVMode:
             correct = 0
             total = 0
             for batch_idx, (images, labels) in enumerate(validloader):
-                images = images.type(torch.float).cuda()
-                labels = labels.type(torch.long).cuda()
+                images = images.type(torch.float).to(device)
+                labels = labels.type(torch.long).to(device)
                 outputs,_ = net(images)
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)

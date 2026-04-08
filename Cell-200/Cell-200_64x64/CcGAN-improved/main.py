@@ -383,7 +383,10 @@ if args.comp_FID:
 
     # for LS
     PreNetLS = ResNet34_regre(ngpu = NGPU).to(device)
-    Filename_PreCNNForEvalGANs = save_models_folder + '/ckpt_PreCNNForEvalGANs_ResNet34_regre_epoch_200_seed_2020_Transformation_True_Cell_200.pth'
+    # Filename_PreCNNForEvalGANs = save_models_folder + '/ckpt_PreCNNForEvalGANs_ResNet34_regre_epoch_200_seed_2020_Transformation_True_Cell_200.pth'
+
+    Filename_PreCNNForEvalGANs = save_models_folder + '/ckpt_PreCNNForEvalGANs_ResNet34_regre_epoch_200_seed_2020_Transformation_True_Cell_185.pth' # 185 for some reasom
+
     checkpoint_PreNet = torch.load(Filename_PreCNNForEvalGANs)
     PreNetLS.load_state_dict(checkpoint_PreNet['net_state_dict'])
 

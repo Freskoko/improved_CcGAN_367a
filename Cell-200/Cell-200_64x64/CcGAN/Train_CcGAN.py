@@ -271,7 +271,8 @@ def SampCcGAN_given_label(netG, label, path=None, NFAKE = 10000, batch_size = 50
         raw_fake_images = raw_fake_images.astype(np.uint8)
         for i in range(NFAKE):
             filename = path + '/' + str(i) + '.jpg'
-            im = Image.fromarray(raw_fake_images[i][0], mode='L')
+            img_to_save = raw_fake_images[i].transpose(1, 2, 0) 
+            im = Image.fromarray(img_to_save, mode='RGB')
             im = im.save(filename)
 
     return fake_images, fake_labels

@@ -134,8 +134,8 @@ def ResNet152_class_eval(num_classes=10, ngpu = 1):
 
 
 if __name__ == "__main__":
-    net = ResNet50_class_eval(num_classes=5, ngpu = 1).cuda()
-    x = torch.randn(16,NC,IMG_SIZE,IMG_SIZE).cuda()
+    net = ResNet50_class_eval(num_classes=5, ngpu = 1).to(device)()
+    x = torch.randn(16,NC,IMG_SIZE,IMG_SIZE).to(device)()
     out, features = net(x)
     print(out.size())
     print(features.size())

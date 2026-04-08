@@ -168,8 +168,8 @@ def ResNet152_regre_eval(ngpu = 1):
 
 
 if __name__ == "__main__":
-    net = ResNet34_regre_eval(ngpu = 1).cuda()
-    x = torch.randn(4,NC,IMG_SIZE,IMG_SIZE).cuda()
+    net = ResNet34_regre_eval(ngpu = 1).to(device)()
+    x = torch.randn(4,NC,IMG_SIZE,IMG_SIZE).to(device)()
     out, features = net(x)
     print(out.size())
     print(features.size())

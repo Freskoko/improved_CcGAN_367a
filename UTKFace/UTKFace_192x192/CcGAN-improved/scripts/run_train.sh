@@ -1,18 +1,33 @@
 #!/bin/bash
 ## Path
-ROOT_PATH="./UTKFace/UTKFace_192x192/CcGAN-improved"
-DATA_PATH="./datasets/UTKFace"
+
+# NEW FILE
+
+# ---------
+
+# ROOT_PATH="./UTKFace/UTKFace_192x192/CcGAN-improved"
+# DATA_PATH="./datasets/UTKFace"
+
+# 1. Go to the directory where the code lives
+cd /home/henrik/school/improved_CcGAN_367a/UTKFace/UTKFace_192x192/CcGAN-improved
+
+# 2. Set ROOT_PATH to "." because we are now inside that folder
+ROOT_PATH="."
+DATA_PATH="../../../.datasets/grass"
 EVAL_PATH="./UTKFace/UTKFace_192x192/CcGAN-improved/output/eval_models"
+
+# -----
 
 SEED=2021
 NUM_WORKERS=3
 MIN_LABEL=1
 MAX_LABEL=60
-IMG_SIZE=192
+IMG_SIZE=64 # changed from 192
 MAX_N_IMG_PER_LABEL=2000
 MAX_N_IMG_PER_LABEL_AFTER_REPLICA=200
 
-NITERS=20000
+# NITERS=20000
+NITERS=10
 BATCH_SIZE_G=96
 BATCH_SIZE_D=96
 NUM_D_STEPS=4
@@ -23,7 +38,8 @@ LR_D=1e-4
 
 GAN_ARCH="SAGAN"
 LOSS_TYPE="hinge"
-NFAKE_PER_LABEL=1000
+# NFAKE_PER_LABEL=1000
+NFAKE_PER_LABEL=1
 FID_RADIUS=0
 
 

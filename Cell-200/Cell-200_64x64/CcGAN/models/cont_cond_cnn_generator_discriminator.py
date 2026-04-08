@@ -8,7 +8,7 @@ import torch.nn as nn
 import numpy as np
 from torch.nn.utils import spectral_norm
 
-NC=1
+NC=3
 IMG_SIZE=64
 
 

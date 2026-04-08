@@ -230,12 +230,12 @@ class cGAN_concat_SAGAN_Discriminator(nn.Module):
 
 if __name__ == "__main__":
     
-    netG = cGAN_concat_SAGAN_Generator(z_dim=128, dim_c=1, g_conv_dim=128).cuda()
-    netD = cGAN_concat_SAGAN_Discriminator(dim_c=1, d_conv_dim=128).cuda()
+    netG = cGAN_concat_SAGAN_Generator(z_dim=128, dim_c=1, g_conv_dim=128).to(device)
+    netD = cGAN_concat_SAGAN_Discriminator(dim_c=1, d_conv_dim=128).to(device)()
 
     n = 4
-    y = torch.randn(n, 1).cuda()
-    z = torch.randn(n, 128).cuda()
+    y = torch.randn(n, 1).to(device)()
+    z = torch.randn(n, 128).to(device)()
     x = netG(z,y)
     o = netD(x,y)
     print(x.size())

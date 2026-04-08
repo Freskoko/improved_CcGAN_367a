@@ -1,3 +1,4 @@
+# OLD --
 
 # ROOT_PATH="./Cell-200/Cell-200_64x64/CcGAN-improved"
 
@@ -12,7 +13,8 @@ ROOT_PATH="."
 DATA_PATH="../../../.datasets/grass"
 
 SEED=2020
-NITERS=5000
+# NITERS=5000
+NITERS=400
 BATCH_SIZE_D=32
 BATCH_SIZE_G=512
 START_COUNT=1 # 1.04
@@ -23,8 +25,8 @@ SIGMA=-1.0
 KAPPA=-2.0
 LR_G=1e-4
 LR_D=1e-4
-NFAKE_PER_LABEL=1000
-FID_RADIUS=0
+NFAKE_PER_LABEL=50
+FID_RADIUS=10
 
 DIM_CcGAN=256
 DIM_cGAN=128
@@ -51,10 +53,11 @@ python pretrain_CNN_regre.py --root_path $ROOT_PATH --data_path $DATA_PATH --sta
 RESUME_NITER=0
 echo "-------------------------------------------------------------------------------------------------"
 echo "CcGAN: Hard"
-python main.py --root_path $ROOT_PATH --data_path $DATA_PATH --GAN CcGAN --start_count $START_COUNT --end_count $END_COUNT --stepsize_count $STEPSIZE_COUNT --num_imgs_per_count $N_IMGS_PER_CELLCOUNT --transform --kernel_sigma $SIGMA --threshold_type hard --kappa $KAPPA --dim_gan $DIM_CcGAN --loss_type_gan $LOSS_TYPE --niters_gan $NITERS --resume_niters_gan $RESUME_NITER --save_niters_freq 2000 --lr_g_gan $LR_G --lr_d_gan $LR_D --batch_size_disc $BATCH_SIZE_D --batch_size_gene $BATCH_SIZE_G --seed $SEED --visualize_fake_images --dim_embed $DIM_EMBED --comp_FID --nfake_per_label $NFAKE_PER_LABEL --samp_batch_size 1000 --FID_radius $FID_RADIUS --dump_fake_for_NIQE 2>&1 | tee output_hard.txt
+python main.py --root_path $ROOT_PATH --data_path $DATA_PATH --GAN CcGAN --start_count $START_COUNT --end_count $END_COUNT --stepsize_count $STEPSIZE_COUNT --num_imgs_per_count $N_IMGS_PER_CELLCOUNT --transform --kernel_sigma $SIGMA --threshold_type hard --kappa $KAPPA --dim_gan $DIM_CcGAN --loss_type_gan $LOSS_TYPE --niters_gan $NITERS --resume_niters_gan $RESUME_NITER --save_niters_freq 2000 --lr_g_gan $LR_G --lr_d_gan $LR_D --batch_size_disc $BATCH_SIZE_D --batch_size_gene $BATCH_SIZE_G --seed $SEED --visualize_fake_images --dim_embed $DIM_EMBED --comp_FID --nfake_per_label $NFAKE_PER_LABEL --samp_batch_size 1000 --FID_radius $FID_RADIUS --dump_fake_for_NIQE 2>&1 --num_channels 3
+# | tee output_hard.txt
 
 
-RESUME_NITER=0
-echo "-------------------------------------------------------------------------------------------------"
-echo "CcGAN: Soft"
-python main.py --root_path $ROOT_PATH --data_path $DATA_PATH --GAN CcGAN --start_count $START_COUNT --end_count $END_COUNT --stepsize_count $STEPSIZE_COUNT --num_imgs_per_count $N_IMGS_PER_CELLCOUNT --transform --kernel_sigma $SIGMA --threshold_type soft --kappa $KAPPA --dim_gan $DIM_CcGAN --loss_type_gan $LOSS_TYPE --niters_gan $NITERS --resume_niters_gan $RESUME_NITER --save_niters_freq 2000 --lr_g_gan $LR_G --lr_d_gan $LR_D --batch_size_disc $BATCH_SIZE_D --batch_size_gene $BATCH_SIZE_G --seed $SEED --visualize_fake_images --dim_embed $DIM_EMBED --comp_FID --nfake_per_label $NFAKE_PER_LABEL --samp_batch_size 1000 --FID_radius $FID_RADIUS --dump_fake_for_NIQE 2>&1 | tee output_soft.txt
+# RESUME_NITER=0
+# echo "-------------------------------------------------------------------------------------------------"
+# echo "CcGAN: Soft"
+# python main.py --root_path $ROOT_PATH --data_path $DATA_PATH --GAN CcGAN --start_count $START_COUNT --end_count $END_COUNT --stepsize_count $STEPSIZE_COUNT --num_imgs_per_count $N_IMGS_PER_CELLCOUNT --transform --kernel_sigma $SIGMA --threshold_type soft --kappa $KAPPA --dim_gan $DIM_CcGAN --loss_type_gan $LOSS_TYPE --niters_gan $NITERS --resume_niters_gan $RESUME_NITER --save_niters_freq 2000 --lr_g_gan $LR_G --lr_d_gan $LR_D --batch_size_disc $BATCH_SIZE_D --batch_size_gene $BATCH_SIZE_G --seed $SEED --visualize_fake_images --dim_embed $DIM_EMBED --comp_FID --nfake_per_label $NFAKE_PER_LABEL --samp_batch_size 1000 --FID_radius $FID_RADIUS --dump_fake_for_NIQE 2>&1 | tee output_soft.txt

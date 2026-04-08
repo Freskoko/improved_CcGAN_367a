@@ -167,7 +167,7 @@ def cal_labelscore(PreNet, images, labels_assi, min_label_before_shift, max_labe
             labels_batch, _ = PreNet(image_tensor)
             labels_pred[tmp:(tmp+batch_size)] = labels_batch.detach().cpu().numpy().reshape(-1)
             tmp+=batch_size
-        del image_tensor; gc.collect()
+        # del image_tensor; gc.collect()
         torch.cuda.empty_cache()
 
     labels_pred = (labels_pred*max_label_after_shift)-np.abs(min_label_before_shift)

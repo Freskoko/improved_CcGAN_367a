@@ -9,7 +9,7 @@ import numpy as np
 
 default_bias = False
 
-NC = 1
+NC = 3
 
 #########################################################
 # genearator

@@ -8,13 +8,13 @@ from torch.nn.utils import spectral_norm
 
 
 
-channels = 1
 bias = True
 GEN_SIZE=64
 DISC_SIZE=64
 
 DIM_EMBED=128
 
+NC = 3
 
 
 class ConditionalBatchNorm2d(nn.Module):
@@ -69,7 +69,7 @@ class cont_cond_cnn_generator(nn.Module):
             nn.Conv2d(ngf, ngf, kernel_size=3, stride=1, padding=1, bias=bias), #h=h
             nn.BatchNorm2d(ngf),
             nn.ReLU(),
-            nn.Conv2d(ngf, 1, kernel_size=3, stride=1, padding=1, bias=bias), #h=h
+            nn.Conv2d(ngf, NC, kernel_size=3, stride=1, padding=1, bias=bias), #h=h
             nn.Tanh()
         )
 
@@ -110,7 +110,7 @@ class cont_cond_cnn_discriminator(nn.Module):
 
         self.conv = nn.Sequential(
             # input is (nc) x 64 x 64
-            nn.Conv2d(1, self.ndf, kernel_size=4, stride=2, padding=1, bias=bias), #h=h/2
+            nn.Conv2d(NC, self.ndf, kernel_size=4, stride=2, padding=1, bias=bias), #h=h/2
             nn.BatchNorm2d(self.ndf),
             nn.LeakyReLU(0.2, inplace=True),
             # input is ndf x 32 x 32

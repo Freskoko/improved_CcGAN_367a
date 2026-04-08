@@ -10,7 +10,7 @@ class encoder(nn.Module):
         self.dim_bottleneck = dim_bottleneck
 
         self.conv = nn.Sequential(
-            nn.Conv2d(1, ch, kernel_size=4, stride=2, padding=1), #h=h/2; 32
+            nn.Conv2d(3, ch, kernel_size=4, stride=2, padding=1), #h=h/2; 32
             nn.BatchNorm2d(ch),
             nn.ReLU(),
             nn.Conv2d(ch, ch, kernel_size=3, stride=1, padding=1), #h=h
@@ -95,7 +95,7 @@ class decoder(nn.Module):
             nn.BatchNorm2d(ch),
             nn.ReLU(),
 
-            nn.Conv2d(ch, 1, kernel_size=3, stride=1, padding=1), #h=h
+            nn.Conv2d(ch, 3, kernel_size=3, stride=1, padding=1), #h=h
             nn.Tanh()
         )
 

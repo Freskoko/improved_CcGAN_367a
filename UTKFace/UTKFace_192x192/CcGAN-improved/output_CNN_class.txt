@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/henrik/school/improved_CcGAN_367a/UTKFace/UTKFace_192x192/CcGAN-improved/pretrain_CNN_class.py", line 89, in <module>
+    labels = hf['races'][:]
+             ~~^^^^^^^^^
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/h5py/_hl/group.py", line 407, in __getitem__
+    return self._get(name)
+           ^^^^^^^^^^^^^^^
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "/home/henrik/school/improved_CcGAN_367a/.venv/lib/python3.12/site-packages/h5py/_hl/group.py", line 421, in _get
+    oid = h5o.open(self.id, self._e(name), lapl=lapl)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5o.pyx", line 255, in h5py.h5o.open
+KeyError: "Unable to synchronously open object (object 'races' doesn't exist)"

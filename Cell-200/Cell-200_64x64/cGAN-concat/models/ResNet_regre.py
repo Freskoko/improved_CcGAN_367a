@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-NC = 1
+NC = 3
 IMG_SIZE = 64
 
 

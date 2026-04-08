@@ -54,8 +54,8 @@ def hflip_images(batch_images):
 
 def train_cgan(images, labels, netG, netD, save_images_folder, save_models_folder = None):
 
-    netG = netG.cuda()
-    netD = netD.cuda()
+    netG = netG.to(device)
+    netD = netD.to(device)
 
     optimizerG = torch.optim.Adam(netG.parameters(), lr=lr_g, betas=(0.5, 0.999))
     optimizerD = torch.optim.Adam(netD.parameters(), lr=lr_d, betas=(0.5, 0.999))
@@ -75,7 +75,7 @@ def train_cgan(images, labels, netG, netD, save_images_folder, save_models_folde
     #end if
 
     n_row=10
-    z_fixed = torch.randn(n_row**2, dim_gan, dtype=torch.float).cuda()
+    z_fixed = torch.randn(n_row**2, dim_gan, dtype=torch.float).to(device)
     unique_labels = np.sort(unique_labels)
     selected_labels = np.zeros(n_row)
     indx_step_size = len(unique_labels)//n_row
@@ -87,7 +87,7 @@ def train_cgan(images, labels, netG, netD, save_images_folder, save_models_folde
         curr_label = selected_labels[i]
         for j in range(n_row):
             y_fixed[i*n_row+j] = curr_label
-    y_fixed = torch.from_numpy(y_fixed).type(torch.long).cuda()
+    y_fixed = torch.from_numpy(y_fixed).type(torch.long).to(device)
 
 
     batch_idx = 0
@@ -111,11 +111,11 @@ def train_cgan(images, labels, netG, netD, save_images_folder, save_models_folde
         # get training images
         _, batch_train_labels = dataloader_iter.next()
         assert batch_size == batch_train_labels.shape[0]
-        batch_train_labels = batch_train_labels.type(torch.long).cuda()
+        batch_train_labels = batch_train_labels.type(torch.long).to(device)
         batch_idx+=1
 
         # Sample noise and labels as generator input
-        z = torch.randn(batch_size, dim_gan, dtype=torch.float).cuda()
+        z = torch.randn(batch_size, dim_gan, dtype=torch.float).to(device)
 
         #generate fake images
         batch_fake_images = netG(z, batch_train_labels)
@@ -151,9 +151,9 @@ def train_cgan(images, labels, netG, netD, save_images_folder, save_models_folde
             # get training images
             batch_train_images, batch_train_labels = dataloader_iter.next()
             assert batch_size == batch_train_images.shape[0]
-            batch_train_images = batch_train_images.type(torch.float).cuda()
+            batch_train_images = batch_train_images.type(torch.float).to(device)
             batch_train_images = hflip_images(batch_train_images)
-            batch_train_labels = batch_train_labels.type(torch.long).cuda()
+            batch_train_labels = batch_train_labels.type(torch.long).to(device)
             batch_idx+=1
 
             # Measure discriminator's ability to classify real from generated samples
@@ -237,15 +237,15 @@ def sample_cgan_given_labels(netG, given_labels, class_cutoff_points, batch_size
     if batch_size>nfake:
         batch_size = nfake
     fake_images = []
-    netG=netG.cuda()
+    netG=netG.to(device)
     netG.eval()
     with torch.no_grad():
         if verbose:
             pb = SimpleProgressBar()
         tmp = 0
         while tmp < nfake:
-            z = torch.randn(batch_size, dim_gan, dtype=torch.float).cuda()
-            labels = torch.from_numpy(given_class_labels[tmp:(tmp+batch_size)]).type(torch.long).cuda()
+            z = torch.randn(batch_size, dim_gan, dtype=torch.float).to(device)
+            labels = torch.from_numpy(given_class_labels[tmp:(tmp+batch_size)]).type(torch.long).to(device)
             if labels.max().item()>num_classes:
                 print("Error: max label {}".format(labels.max().item()))
             batch_fake_images = netG(z, labels)

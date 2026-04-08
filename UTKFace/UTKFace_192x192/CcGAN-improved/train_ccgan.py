@@ -69,9 +69,9 @@ def train_ccgan(kernel_sigma, kappa, train_images, train_labels, netG, netD, net
     Note that train_images are not normalized to [-1,1]
     '''
 
-    netG = netG.cuda()
-    netD = netD.cuda()
-    net_y2h = net_y2h.cuda()
+    netG = netG.to(device)
+    netD = netD.to(device)
+    net_y2h = net_y2h.to(device)
     net_y2h.eval()
 
     optimizerG = torch.optim.Adam(netG.parameters(), lr=lr_g, betas=(0.5, 0.999))
@@ -92,7 +92,7 @@ def train_ccgan(kernel_sigma, kappa, train_images, train_labels, netG, netD, net
 
     # printed images with labels between the 5-th quantile and 95-th quantile of training labels
     n_row=10; n_col = n_row
-    z_fixed = torch.randn(n_row*n_col, dim_gan, dtype=torch.float).cuda()
+    z_fixed = torch.randn(n_row*n_col, dim_gan, dtype=torch.float).to(device)
     start_label = np.quantile(train_labels, 0.05)
     end_label = np.quantile(train_labels, 0.95)
     selected_labels = np.linspace(start_label, end_label, num=n_row)
@@ -102,7 +102,7 @@ def train_ccgan(kernel_sigma, kappa, train_images, train_labels, netG, netD, net
         for j in range(n_col):
             y_fixed[i*n_col+j] = curr_label
     print(y_fixed)
-    y_fixed = torch.from_numpy(y_fixed).type(torch.float).view(-1,1).cuda()
+    y_fixed = torch.from_numpy(y_fixed).type(torch.float).view(-1,1).to(device)
 
 
     start_time = timeit.default_timer()
@@ -164,26 +164,26 @@ def train_ccgan(kernel_sigma, kappa, train_images, train_labels, netG, netD, net
 
             ## draw real image/label batch from the training set
             batch_real_images = torch.from_numpy(normalize_images(hflip_images(train_images[batch_real_indx])))
-            batch_real_images = batch_real_images.type(torch.float).cuda()
+            batch_real_images = batch_real_images.type(torch.float).to(device)
             batch_real_labels = train_labels[batch_real_indx]
-            batch_real_labels = torch.from_numpy(batch_real_labels).type(torch.float).cuda()
+            batch_real_labels = torch.from_numpy(batch_real_labels).type(torch.float).to(device)
 
 
             ## generate the fake image batch
-            batch_fake_labels = torch.from_numpy(batch_fake_labels).type(torch.float).cuda()
-            z = torch.randn(batch_size_disc, dim_gan, dtype=torch.float).cuda()
+            batch_fake_labels = torch.from_numpy(batch_fake_labels).type(torch.float).to(device)
+            z = torch.randn(batch_size_disc, dim_gan, dtype=torch.float).to(device)
             batch_fake_images = netG(z, net_y2h(batch_fake_labels))
 
             ## target labels on gpu
-            batch_target_labels = torch.from_numpy(batch_target_labels).type(torch.float).cuda()
+            batch_target_labels = torch.from_numpy(batch_target_labels).type(torch.float).to(device)
 
             ## weight vector
             if threshold_type == "soft":
-                real_weights = torch.exp(-kappa*(batch_real_labels-batch_target_labels)**2).cuda()
-                fake_weights = torch.exp(-kappa*(batch_fake_labels-batch_target_labels)**2).cuda()
+                real_weights = torch.exp(-kappa*(batch_real_labels-batch_target_labels)**2).to(device)
+                fake_weights = torch.exp(-kappa*(batch_fake_labels-batch_target_labels)**2).to(device)
             else:
-                real_weights = torch.ones(batch_size_disc, dtype=torch.float).cuda()
-                fake_weights = torch.ones(batch_size_disc, dtype=torch.float).cuda()
+                real_weights = torch.ones(batch_size_disc, dtype=torch.float).to(device)
+                fake_weights = torch.ones(batch_size_disc, dtype=torch.float).to(device)
             #end if threshold type
 
             # forward pass
@@ -224,9 +224,9 @@ def train_ccgan(kernel_sigma, kappa, train_images, train_labels, netG, netD, net
         ## add Gaussian noise; we estimate image distribution conditional on these labels
         batch_epsilons = np.random.normal(0, kernel_sigma, batch_size_gene)
         batch_target_labels = batch_target_labels_in_dataset + batch_epsilons
-        batch_target_labels = torch.from_numpy(batch_target_labels).type(torch.float).cuda()
+        batch_target_labels = torch.from_numpy(batch_target_labels).type(torch.float).to(device)
 
-        z = torch.randn(batch_size_gene, dim_gan, dtype=torch.float).cuda()
+        z = torch.randn(batch_size_gene, dim_gan, dtype=torch.float).to(device)
         batch_fake_images = netG(z, net_y2h(batch_target_labels))
 
         # loss
@@ -282,17 +282,17 @@ def sample_ccgan_given_labels(netG, net_y2h, labels, batch_size = 500, to_numpy=
 
     fake_images = []
     fake_labels = np.concatenate((labels, labels[0:batch_size]))
-    netG=netG.cuda()
+    netG=netG.to(device)
     netG.eval()
-    net_y2h = net_y2h.cuda()
+    net_y2h = net_y2h.to(device)
     net_y2h.eval()
     with torch.no_grad():
         if verbose:
             pb = SimpleProgressBar()
         n_img_got = 0
         while n_img_got < nfake:
-            z = torch.randn(batch_size, dim_gan, dtype=torch.float).cuda()
-            y = torch.from_numpy(fake_labels[n_img_got:(n_img_got+batch_size)]).type(torch.float).view(-1,1).cuda()
+            z = torch.randn(batch_size, dim_gan, dtype=torch.float).to(device)
+            y = torch.from_numpy(fake_labels[n_img_got:(n_img_got+batch_size)]).type(torch.float).view(-1,1).to(device)
             batch_fake_images = netG(z, net_y2h(y))
             if denorm: #denorm imgs to save memory
                 assert batch_fake_images.max().item()<=1.0 and batch_fake_images.min().item()>=-1.0

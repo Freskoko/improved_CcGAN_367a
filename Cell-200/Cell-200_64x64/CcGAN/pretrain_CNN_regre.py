@@ -182,7 +182,7 @@ hf.close()
 
 selected_cellcounts = np.arange(args.start_count, args.end_count+1)
 n_unique_cellcount = len(selected_cellcounts)
-images_subset = np.zeros((n_unique_cellcount*1000, 1, args.img_size, args.img_size), dtype=np.uint8)
+images_subset = np.zeros((n_unique_cellcount*1000, 3, args.img_size, args.img_size), dtype=np.uint8) # changed to 3
 counts_subset = np.zeros(n_unique_cellcount*1000)
 for i in range(n_unique_cellcount):
     curr_cellcount = selected_cellcounts[i]
