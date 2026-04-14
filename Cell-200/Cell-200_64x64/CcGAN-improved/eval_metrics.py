@@ -44,6 +44,7 @@ def FID(Xr, Xg, eps=1e-10):
     MUg = np.mean(Xg, axis = 0)
     mean_diff = MUr - MUg
     #sample covariance
+
     SIGMAr = np.cov(Xr.transpose())
     SIGMAg = np.cov(Xg.transpose())
 

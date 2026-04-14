@@ -266,7 +266,7 @@ def SampCcGAN_given_label(netG, net_y2h, label, path=None, NFAKE = 10000, batch_
     fake_images = np.zeros((NFAKE+batch_size, NC, IMG_SIZE, IMG_SIZE), dtype=np.float64) # np.float is deprecated
     netG=netG.to(device)
     netG.eval()
-    print(f"DEBUG: fake_images shape is {fake_images.shape}")
+    # print(f"DEBUG: fake_images shape is {fake_images.shape}")
 
     with torch.no_grad():
         tmp = 0

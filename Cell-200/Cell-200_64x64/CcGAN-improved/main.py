@@ -468,6 +468,15 @@ if args.comp_FID:
         fake_images_curr = fake_images[indx_fake]
         fake_labels_assigned_curr = fake_labels_assigned[indx_fake]
         # FID
+
+        # --- ADD THIS CHECK TO SKIP ---
+        if len(real_images_curr) < 2 or len(fake_images_curr) < 2:
+            # Not enough samples to calculate covariance. Skip this center.
+            FID_over_centers[i] = 0
+            labelscores_over_centers[i] = 0
+            continue
+        # ------------------------------
+
         FID_over_centers[i] = cal_FID(PreNetFID, real_images_curr, fake_images_curr, batch_size = 200, resize = None)
         # Label score
         labelscores_over_centers[i], _ = cal_labelscore(PreNetLS, fake_images_curr, fake_labels_assigned_curr, min_label_before_shift=0, max_label_after_shift=args.end_count, batch_size = 200, resize = None)
@@ -534,6 +543,13 @@ if args.visualize_fake_images:
             for j_col in range(n_col):
                 curr_label = displayed_cellcounts[j_col]
                 indx_curr_label = np.where(raw_counts==curr_label)[0]
+
+                # --- NEW CHECK ---
+                if len(indx_curr_label) == 0:
+                    print(f"Warning: No real images found for cell count {curr_label}. Skipping this sample in the grid.")
+                    continue
+                # -----------------
+
                 np.random.shuffle(indx_curr_label)
                 indx_curr_label = indx_curr_label[0]
                 images_show[i_row*n_col+j_col] = raw_images[indx_curr_label]
