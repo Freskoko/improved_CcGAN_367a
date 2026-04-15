@@ -55,7 +55,7 @@ def parse_opts():
     ''' Sampling and Evaluation '''
     parser.add_argument('--samp_batch_size', type=int, default=1000)
     parser.add_argument('--nfake_per_label', type=int, default=1000)
-    parser.add_argument('--comp_FID', action='store_true', default=False)
+    parser.add_argument('--comp_FID', type=str, default="False")
     parser.add_argument('--epoch_FID_CNN', type=int, default=200)
     parser.add_argument('--FID_radius', type=int, default=0)
     parser.add_argument('--dump_fake_for_NIQE', action='store_true', default=False)

@@ -19,6 +19,7 @@ from torchvision.utils import save_image
 import timeit
 from PIL import Image
 
+
 from opts import parse_opts
 args = parse_opts()
 wd = args.root_path
@@ -76,8 +77,6 @@ os.makedirs(save_traincurves_folder, exist_ok=True)
 #######################################################################################
 # data loader
 
-print("started script")
-
 data_filename = args.data_path + '/Cell200_{}x{}.h5'.format(IMG_SIZE, IMG_SIZE)
 hf = h5py.File(data_filename, 'r')
 counts = hf['CellCounts'][:]
@@ -87,8 +86,6 @@ hf.close()
 
 raw_images = copy.deepcopy(images)
 raw_counts = copy.deepcopy(counts)
-
-print("images copied")
 
 ##############
 ### show some real  images
@@ -105,8 +102,6 @@ if args.show_real_imgs:
     images_show = (images_show/255.0-0.5)/0.5
     images_show = torch.from_numpy(images_show)
     save_image(images_show.data, save_images_folder +'/real_images_grid_{}x{}.png'.format(nrow, ncol), nrow=ncol, normalize=True)
-
-print("grab images for training gan")
 
 ##############
 # images for training GAN
@@ -134,7 +129,9 @@ del images_subset, counts_subset; gc.collect()
 
 print("Number of images: %d" % len(images))
 
+# ok this is it here now
 if args.GAN == "cGAN": #treated as classification; convert cell counts to class labels
+    print("Made it to if args.GAN == cGAN")
     unique_counts = np.sort(np.array(list(set(raw_counts)))) #not counts because we want the last element is the max_count
     num_unique_counts = len(unique_counts)
     print("{} unique counts are split into {} classes".format(num_unique_counts, args.cGAN_num_classes))
@@ -372,7 +369,7 @@ print("GAN training finished; Time elapses: {}s".format(stop - start))
 #######################################################################################
 '''                                  Evaluation                                     '''
 #######################################################################################
-if args.comp_FID:
+if args.comp_FID == "True":
     print("Start evalulation")
     #for FID
     PreNetFID = encoder(dim_bottleneck=512).to(device)
@@ -523,7 +520,7 @@ if args.visualize_fake_images:
     # First, visualize conditional generation on several unseen cell counts
     ## 3 rows (3 samples); 10 columns (10 unseen cell counts; displayed cell count starts from 10)
     n_row = 3
-    n_col = 10
+    n_col = 20
     all_unique_cellcounts = np.arange(args.start_count, args.end_count+1)
     unseen_unique_cellcounts = np.sort(np.setdiff1d(all_unique_cellcounts, selected_cellcounts))
     unseen_unique_cellcounts = unseen_unique_cellcounts[unseen_unique_cellcounts>=10]

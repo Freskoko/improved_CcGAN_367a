@@ -26,7 +26,7 @@ batch_size = min(args.batch_size_disc, args.batch_size_gene)
 num_classes = args.cGAN_num_classes
 
 transform = args.transform
-NC = args.num_channels
+NC = 3
 IMG_SIZE = args.img_size
 
 
@@ -76,7 +76,7 @@ def train_cGAN(images, labels, netG, netD, save_images_folder, save_models_folde
 
     start_time = timeit.default_timer()
     for niter in range(resume_niters, niters):
-        print(f"on {niter} of {niters}")
+        # print(f"on {niter} of {niters}")
 
         if batch_idx+1 == len(train_dataloader):
             dataloader_iter = iter(train_dataloader)
