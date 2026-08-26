@@ -1,18 +1,0 @@
-
-===================================================================================================
-
- Original set has 224 images; For each label, take no more than 2000 images>>>
-  0%|          | 0/55 [00:00<?, ?it/s]100%|██████████| 55/55 [00:00<00:00, 246723.76it/s]
-224 images left.
-Start replicating monority samples >>>
-  0%|          | 0/55 [00:00<?, ?it/s] 42%|████▏     | 23/55 [00:00<00:00, 216.05it/s] 82%|████████▏ | 45/55 [00:00<00:00, 118.01it/s]100%|██████████| 55/55 [00:00<00:00, 106.18it/s]
-We replicate 10776 images and labels 
-
-
- Range of unnormalized labels: (1.0,60.0)
-55 unique labels are split into 60 classes
-Traceback (most recent call last):
-  File "/home/henrik/school/improved_CcGAN_367a/UTKFace/UTKFace_192x192/CcGAN-improved/main.py", line 192, in <module>
-    if (i+1)%num_labels_per_class==0 and (curr_class+1)!=args.cGAN_num_classes:
-       ~~~~~^~~~~~~~~~~~~~~~~~~~~
-ZeroDivisionError: integer modulo by zero
