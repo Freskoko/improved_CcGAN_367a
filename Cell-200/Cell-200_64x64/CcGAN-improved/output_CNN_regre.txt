@@ -1,7 +1,0 @@
-usage: pretrain_CNN_regre.py [-h] [--root_path ROOT_PATH]
-                             [--data_path DATA_PATH] [--start_count N]
-                             [--end_count N] [--CNN CNN] [--epochs N]
-                             [--batch_size_train N] [--batch_size_valid N]
-                             [--base_lr BASE_LR] [--weight_dacay WEIGHT_DACAY]
-                             [--seed S] [--transform] [--img_size N]
-pretrain_CNN_regre.py: error: argument --img_size: invalid choice: 192 (choose from 64, 128)
