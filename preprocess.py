@@ -48,12 +48,9 @@ for _, row in tqdm(df_wide.iterrows(), total=len(df_wide)):
     imgs_list.append(img_array)
     labels_list.append(row[PRIMARY_TARGET])
 
-# Convert to numpy arrays
 imgs_all = np.array(imgs_list).astype(np.uint8)
 labels_all = np.array(labels_list).astype(np.float32)
 
-# --- NEW: STEP 3. Split into Train and Test (Validation) ---
-# We'll use 80% for training and 20% for the evaluation CNN to check its homework.
 print("Splitting data into train/test sets...")
 train_imgs, test_imgs, train_labels, test_labels = train_test_split(
     imgs_all, labels_all, test_size=0.2, random_state=2020

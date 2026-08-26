@@ -1,292 +1,209 @@
-# Continuous Conditional Generative Adversarial Networks
+# CcGAN (Continous Conditional GAN)
+    Author: Henrik Brøgger
 
-**[UPDATE! 2025-10-13]** We provide an optimized, unified CcGAN repository in [CcGAN-AVAR](https://github.com/UBCDingXin/CcGAN-AVAR). <br />
-**[UPDATE! 2023-08-01]** We fixed a typo in the codes for computing the Label Score for the Steering Angle (128x128) experiments (the 64x64 experiments are NOT affected). The original evaluation code tends to underestimate the Label Scores of compared methods. After the fixing, the Label Scores of cGAN (210 classes), cGAN (concat), and CcGAN (SVDL+ILI) are respectively 31.756 (23.005), 42.757 (27.341), and 18.438 (16.072). Fortunately, the conclusion that CcGAN substantially outperforms cGANs is unchanged! <br />
-**[UPDATE! 2022-12-10]** A journal version of CcGAN is accepted by T-PAMI ([link](https://ieeexplore.ieee.org/document/9983478))! <br />
-**[UPDATE! 2021-07-28]** We provide codes for training CcGAN on **high-resolution** RC-49, UTKFace, and Steering Angle where the resolution varies from **128x128** to **256x256**. We also provide simplified codes for computing NIQE. <br />
-**[UPDATE! 2021-07-27]** We add a new baseline cGAN (concat) which directly appends regression labels to the input of generator and the last hidden map of discriminator. cGAN (K classes) and cGAN (concat) are two modifications on conventional cGANs (to fit the regression scenario) and they show two types of failures of conventional cGANs. (1) cGAN (K classes) has high label consistency but bad visual quality and low intra-label diversity. (2) cGAN (concat) has high intra-label diversity but bad/fair visual quality and terrible label consistency. <br />
-**[UPDATE! 2021-01-13]** A conference version of CcGAN is accepted by ICLR 2021. <br />
+This is a fork of `https://github.com/UBCDingXin/improved_CcGAN`
 
---------------------------------------------------------
+### How to run
 
-This repository provides the source codes for the experiments in our papers for CcGANs. <br />
-If you use this code, please cite
-```text
-@ARTICLE{9983478,
-    author={Ding, Xin and Wang, Yongwei and Xu, Zuheng and Welch, William J. and Wang, Z. Jane},
-    journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
-    title={Continuous Conditional Generative Adversarial Networks: Novel Empirical Losses and Label Input Mechanisms}, 
-    year={2023},
-    volume={45},
-    number={7},
-    pages={8143-8158},
-    doi={10.1109/TPAMI.2022.3228915}
-}
+Firstly, ensure the "image2biomass" dataset exists in `src/data`, it is available from [this kaggle competition](https://www.kaggle.com/competitions/csiro-biomass).
 
-@inproceedings{
-    ding2021ccgan,
-    title={Cc{GAN}: Continuous Conditional Generative Adversarial Networks for Image Generation},
-    author={Xin Ding and Yongwei Wang and Zuheng Xu and William J Welch and Z. Jane Wang},
-    booktitle={International Conference on Learning Representations},
-    year={2021},
-    url={https://openreview.net/forum?id=PrzjugOsDeE}
-}
+The code can be run by opening a terminal in the root of the `inf367a_image2biomass` folder and running `sh src/main/ccgan_improved/run_train.sh`.
+
+An example output of the code running can be seen in `src/main/ccgan_improved/full_run_outputs.txt`.
+
+### What is it?
+
+CcGAN (Continuous Conditional General Adversarial Network) is a GAN model tweaked to work specifically on continuous (regression tasks). For instance when creating new images based on a continuous variable such as "age", or "angle". The [paper](https://arxiv.org/abs/2011.07466) implementing CcGAN makes many new novel changes, taking advantage of the continuous nature of the data, instead of being limited by it.
+
+### Why does it fits this task?
+
+In the [csiro-biomass](https://www.kaggle.com/competitions/csiro-biomass) competition, datasets are continuous, and there are a limited amount of images for such a image regression problem, meaning image augmentation or synthesis could be a valid method to increase model performance.
+
+## How does it work?
+
+The paper focuses on overcoming the challenges faced when converting a cGAN into a CcGAN, and how to evaluate a CcGAN.
+
+### Issue 1: Loss functions
+
+A typical **discriminator loss function** is simply "For all labels, label real images as real", and "for all labels, label fake images as fake". The issue here is that in a continuous label space, there are theoretically infinite labels, and we may be missing true images for certain labels.
+
+The solution to this problem is allowing the discriminator to be vicinal. If we wish to train the generator to discern if an image with "40 grass" is true or false, but we are missing true images with label 40 from our dataset, we can instead give the discriminator an image with "38 grass" on it, but lie and tell the discriminator there is actually 40 grass there. This works because images with *close* labels will look alike.
+Suddenly, instead of having 0 images of "40 grass", we can have as many as we like (depending on how vicinal we are). However, there is a limit to how vicinal one can be, because an image with "0 grass", is not going to be representative of an image with "40 grass".
+
+The paper presents two ways of doing this. Firstly, using a "hard" vicinity (HVE), where images above and below target variable **x** within some range **y** are chosen as examples of images with label **x**, and are all equally important (see image a below).
+Secondly, using a "soft" vicinity (SVE), where all images in the dataset are chosen as examples of label **x**, but are weighted based on their distance from **x** (see image b below).
+A HVE may be more strict about what images are used to train the discriminator, but a SVE may be able to leverage more training data to generate better images, faster.
+
+![vicinity](images/vicinal.png)
+
+A typical **generator loss function** is simply "do not get caught by the discriminator". We give it a label, for instance "40", and ask it to generate an image with 40 grass.
+
+$$Discriminator(Generator(y^g), y^g)$$
+
+However, we want our generator to learn that images with "40 grass" and "39 grass" are visually similar. For each label *y* we wish to generate, we perturb it with gaussian noise.
+
+$$Discriminator(Generator(y^g + \epsilon^g), y^g + \epsilon^g)$$
+
+The idea is that the generator will learn that a **range** of labels match to a **range** of features. Instead of being very focused on generating a perfect "40 grass" or "39 grass" image, the generator can leverage the fact that these two images will likely be very similar. The generator model is learning how to generate a "40 grass", as well as a "39 grass" image, simultaneously.
+
+### Issue 2: Label encodings
+
+Typical cGAN's simply proide the binary label to their discriminator/generator, but this generalizes poorly to unknown labels, or labels with few examples. The paper suggests generating a meaningful embedding from the input label **y**. Before training the GAN's, two models are trained.
+The first model is a regression model, which given an image, tries to predict the label on the image.
+
+![model1](images/pretrain_model.png)
+
+The second model we train flips the last linear layer of this model, instead turning labels **y** to features **h**.
+
+![model2](images/pretrained_model2.png)
+
+The idea is that instead of training on labels **y**, we instead run the labels through this second network, and generate some embedded representation of the label.
+Given some unknown **y** that we did not have in our training data, this model may be able to turn the label into an embedding that could be understood by the models. It is important to note that for this to work we are leaning heavily on the first model, and assuming that it is able to, not only solve the problem, but also generate meaningful embeddings, that can be used for the next task.
+
+
+### Issue 3: Evaluation
+
+FiD score is a popular metric used for GAN's, but to evaluate CcGAN's, sliding-FID is a better representation. Much like with our discriminator loss function, FiD assumes we have real images for all regression labels, something we do not have. Sliding-FiD solves this by computing the FiD score for an interval +-**x** within target FiD variable **y**, and taking the average FiD within the interval.
+
+![model2](images/sfid.png)
+
+This should work in theory, since the FiD score for "40 grass" should be similar to that of "39 grass". There is a catch here, and that is that sliding FiD may hide underperforming labels, due to surrounding labels performing well.
+
+### Model summary
+
+In summary, the paper manages to create CcGAN's from cGAN's by leveraging the fact that the data used is continuous, and that images with similar targets, will usually look similar. By allowing the generator and discriminator to be vicinal, models learn the continuous nature of the data. By using sliding-FiD, models can be evaluated, even at targets with missing true images.
+
+### Implementation
+
+Simply, cloning [the repo](https://github.com/UBCDingXin/improved_CcGAN) and running the code with our dataset proved challenging. The code was hardcoded to work with specific datasets, so changing variable and file names was required.
+
+**Dataset conversion**: I needed to convert the image2biomass dataset to a `.h5` dataset. Labels needed to match some exact variable names, so going through the code and changing these to appropriate variables was required. Changing the model could be an interesting endeavour, but that is outside the scope of this paper.
+
+**Image differences**: One big issue was the differing image size between the csiro-biomass dataset, and the datasets used by the CcGAN. Up to 192x192 (36864 pixels) images was the maximum used for this task, and so trying to implement creating new 1000x2000 (
+2000000 pixels) images would be very difficult.
+After talking to the course administrator, we reached an agreement where we would instead resize the 1000x2000 images to 64x64 (4096) and try to run the CcGAN model on these images. This image compression does mean that we now only have 0.2048% of the pixels in the original image. The idea of upsampling the images back to 1000x2000 to use them as training data is pointless, so it was just decided that we evaluate the 64x64 images as they are.
+
+**Target variable**: The original CcGAN paper only provides code for making new images based on *a single label*, (age, angle.. etc). The csiro-biomass problem is asking us to do regression on *5* labels. This mismatch meant that creating images based on 5 labels would be difficult. In theory it is possible to modify both the **Improved label input** and **Vicinal Risk Minimization** logic to use euclidean distance in a vector space to measure similarity between images, instead of the scalar comparison that is now used. However this is out of scope of this paper, but would be interesting to try out, for another task.
+**Due to this issue, we chose "Dry_Total_G" as the main target variable for the CcGAN task**
+
+**Rounding target variable**: The code only takes in target variables as integers, but the image2biomass dataset includes floats. It was required to then round these floats down to the closest int. Here some data is lost, but this was required.
+
+**Training time**: Even with this massive image compression, training and evaluating all the models took 24~ hours in total when using (64x64 pixels). One can only imagine how much time (1000x2000) images would take.
+
+All preprocessing can be seen in `src/main/ccgan_improved/preprocess/preprocess.py`.
+
+**Code changes**
+
+Changes related to CcGAN are localized to the folder `src/main/ccgan_improved`.
+
+The codebase was last updated 6 months ago, but most of the code was written 5-6 years ago. I was using a newer python and torch version, so many deprecated methods needed to be updated. For example, `astype(np.float)` was used everywhere, but `astype(np.float64)` should now be used instead.
+Many comments in the code were hard to understand, and sometimes large code blocks are mysteriously left commented out. I also did a refactor of the codebase, moving files to appropriate locations, to make things easier to parse.
+
+Comments like this can be found showing where i updated the deprecated code:
+```python
+# fixed since np.float was deprecated
+# fixed since .next() is deprecated
 ```
+I based my implementation of the "cell dataset", which was hardcoded to be in gray scale, so many methods needed to be updated to work in RGB, for instance CNN models, and image saving. In retrospect, I should have picked another dataset as the baseline code to work on, but it was not too much work to get the code to work with color.
 
---------------------------------------------------------
+Other issues being te use of CamelCase, which was fixed to snake_case. Unused import graveyards which needed to be pruned. Code was formatted poorly, but i ran [ruff](https://docs.astral.sh/ruff/formatter/) to fix that.
 
-# Repository Structure
-
-```
-├── RC-49
-│   ├── RC-49_64x64
-│   │   ├──CcGAN
-│   │   ├──CcGAN-improved
-│   │   └──cGAN-concat
-│   ├── RC-49_128x128
-│   │   └──CcGAN-improved
-│   └── RC-49_256x256
-│       └──CcGAN-improved
-├── UTKFace
-│   ├── UTKFace_64x64
-│   │   ├──CcGAN
-│   │   ├──CcGAN-improved
-│   │   └──cGAN-concat
-│   ├── UTKFace_128x128
-│   │   └──CcGAN-improved
-│   └── UTKFace_192x192
-│       └──CcGAN-improved
-├── Cell-200
-│   └── Cell-200_64x64
-│       ├──CcGAN
-│       ├──CcGAN-improved
-│       └──cGAN-concat
-├── SteeringAngle
-│   ├── SteeringAngle_64x64
-│   │   ├──CcGAN
-│   │   ├──CcGAN-improved
-│   │   └──cGAN-concat
-│   └── SteeringAngle_128x128
-│       └──CcGAN-improved
-└── NIQE
-    ├── RC-49
-    │   ├── NIQE_64x64
-    │   ├── NIQE_128x128
-    │   ├── NIQE_256x256
-    ├── UTKFace
-    │   ├── NIQE_64x64
-    │   ├── NIQE_128x128
-    │   └── NIQE_192x192
-    ├── Cell-200
-    │   └── NIQE_64x64
-    └── SteeringAngle
-        ├── NIQE_64x64
-        └── NIQE_128x128
-```
-
---------------------------------------------------------
-
-# The overall workflow of CcGAN
-
-<p align="center">
-  <img src="images/workflow_CcGAN.png">
-  The overall workflow of CcGAN. Regression labels are input into the generator and the discriminator by novel label input mechanisms (NLI and ILI). Novel empirical losses (HVDL, SVDL, and a generator loss) are used to train the generator and discriminator. CcGAN can also employ modern GAN architectures (e.g., SNGAN and SAGAN) and training techniques (e.g., DiffAugment).
-</p>
-
---------------------------------------------------------
-
-# Hard Vicinal Discriminator Loss (HVDL) and Soft Vicinal Discriminator Loss (SVDL)
-
-<p align="center">
-  <img src="images/HVDL_and_SVDL.png">
-  The formulae for HVDL and SVDL.
-</p>
-
-An example of the hard vicinity                  |  An example of the soft vicinity
-:-------------------------:|:-------------------------:
-![](images/visualization_HVE.png)  |  ![](images/visualization_SVE.png)
+The [grading rubric](https://mitt.uib.no/courses/56990/files?preview=7447404) states that code should be documented. So for each file and function i have written a small snippet explaining its purpose, where applicable.
 
 
---------------------------------------------------------
+NOTE: *I did also write code for the initial pipeline for the image2biomass project.*
 
-# Naive Label Input (NLI) and Improved Label Input (ILI) Mechanisms
+### Selected settings
 
-<!-- NLI for G                  |  NLI for D
-:-------------------------:|:-------------------------:
-![](images/vanilla_label_input_G.png)  |  ![](images/vanilla_label_input_D.png) -->
+All settings can be see in [run train](src/main/ccgan_improved/run_train.sh).
 
-<p align="center">
-  <img src="images/naive_label_input.png">
-  The workflow of the naive label input (NLI) mechanism.
-</p>
+The most important settings chosen can be seen below:
 
-CNN for label embedding in ILI   |  The embedding network in ILI
-:-------------------------:|:-------------------------:
-![](images/pre-trained_CNN_for_label_embedding.png)  |  ![](images/label_embedding_network.png)
+1. NITERS (2000): How many iterations to train the GANs.
 
-<p align="center">
-  <img src="images/improved_label_input.png">
-  The workflow of the improved label input (ILI) mechanism.
-</p>
+Initially lower numbers were tried, but the models could not learn to generate any novel images. We would have loved to have trained the GAN's for longer periods of time, but considering training with 2000 iters takes 24 hours, these were settled on.
+
+In comparison, the models from the original paper were trained much longer, for 30,000 iterations per experiment. This difference could have an impact on model performance.
+
+2. NFAKE_PER_LABEL (40): How many fake images to generate per "label". We have around 185 labels, so 185 * 40 = 7400 fake images. This greatly impacts FiD score, so going for a large number like 40 helped accurately evaluating the model's performance.
+
+3. FID_RADIUS (20): When performing FiD calculations, how "vicinal" should one be? For example, when evaluating an image with total biomass = 40, if our FiD radius is 20, we treat all images from 20-60 as 40 year olds. A higher FiD radius could mean artificially making model performance worse, but a too low radius could mean we do not have enough images to capture model performance.
 
 
+### Scoring
 
--------------------------------
+Based on the settings, we produced 7400 fake images for each model.
 
-# Software Requirements
-| Item | Version |
-|---|---|
-|Python|3.9.5|
-| argparse | 1.1 |
-| CUDA  | 11.4 |
-| cuDNN| 8.2|
-| numpy | 1.14 |
-| torch | 1.9.0 |
-| torchvision | 0.10.0 |
-| Pillow | 8.2.0 |
-| matplotlib | 3.4.2 |
-| tqdm | 4.61.1 |
-| h5py | 3.3.0 |
-| Matlab | 2020a |
+Below is a table of model and FiD score over each 7400 fake images created by the models. Note that a lower FiD score is *better*.
 
+| Model | Global FID  | Overall LS  | SFID  |
+| :--- | :--- | :--- | :--- |
+| **cGAN** | 147.377 | 72.823 | 231.225 |
+| **CcGAN (Hard Vicinial)** | 77.782 | 65.412 | 168.006 |
+| **CcGAN (Soft Vicinial)** | 59.244 | 65.292 | 159.951 |
 
---------------------------------------------------------
+Based on the above table, the CcGAN model outperforms all the other models, but the CcGAN method outperforms the cGAN method.
 
-# Datasets
-## The RC-49 Dataset (h5 file)
-Download the following h5 files and put them in `./datasets/RC-49`.
-### RC-49 (64x64)
-[RC-49_64x64_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstI0OuDMqpEZA80tRQ?e=fJJbWw) <br />
-### RC-49 (128x128)
-[RC-49_128x128_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstIu_hXCzzhy6OEf9A?e=eEXl8n) <br />
-### RC-49 (256x256)
-[RC-49_256x256_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstJyYe-EmFyKpYbBWw?e=5rYCCD) <br />
+### FiD
 
-## The preprocessed UTKFace Dataset (h5 file)
-Download the following h5 files and put them in `./datasets/UTKFace`.
-### UTKFace (64x64)
-[UTKFace_64x64_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstIzurW-LCFpGz5D7Q?e=X23ybx) <br />
-### UTKFace (128x128)
-[UTKFace_128x128_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstJGpTgNYrHE8DgDzA?e=d7AeZq) <br />
-### UTKFace (192x192)
-[UTKFace_192x192_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstY8hLN3lWEyX0lNLA?e=YBpYwv) <br />
+The regular cGAN which groups images into distinct classes (non-continuous), has a high FiD score, and underperforms compared to the two other models.
+The CcGAN using HVE has a much better score, but the best model is the CcGAN using SVE. The HVE only looks in a range around the target variable (all weighted equally), but the SVE looks at ALL images in the dataset weighted by how far they are from the target. Perhaps due to the limited amount of data in the dataset, the SVE performed better as it could leverage more data.
 
-## The Cell-200 dataset (h5 file)
-Download the following h5 files and put them in `./datasets/Cell-200`.
+### SFiD (Sliding FiD)
 
-[Cell-200_64x64_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstIt73ZfGOAjBMiTmQ?e=cvxFIN) <br />
+*What is SFiD*, SFiD is much like FiD but instead of evaluating images with label X by only looking at images with label X, we instead treat all images within the range Y (see "FiD radius" in settings above) of X, as they were label X. This gives us more data and sometimes a better estimate of model performance. This metric can be used because we are using the assumption that images with similar labels, will have similar images.
 
-## The Steering Angle dataset (h5 file)
-Download the following h5 files and put them in `./datasets/SteeringAngle`.
-### Steering Angle (64x64)
-[SteeringAngle_64x64_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstIyDTDpGA0CNiONkA?e=Ui5kUK) <br />
-[SteeringAngle_5_scenes_64x64_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstIv4_uR9Yi4SRgkBQ?e=jNFSlE) <br />
-### Steering Angle (128x128)
-[SteeringAngle_128x128_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstJ0j7rXhDtm6y4IcA?e=bLQh2e) <br />
-[SteeringAngle_5_scenes_128x128_download_link](https://1drv.ms/u/s!Arj2pETbYnWQstIwwbbZ9fKHOgbE9A?e=qdoIx6) <br />
+For the SFiD, CcGAN's also perform much better than the cGAN, with the SVE CcGAN performing best.
+An important disclaimer to note is that SFiD was designed to evaluate CcGAN's, and so the cGAN underperforming here is somewhat expected. Changes and tricks have to be done in order for the cGAN to use this method.
+
+### LS (label score)
+
+*What is label score*: The label score is the Mean Absolute Error (MAE) between the target variable for the fake images and actual target. A smaller LS is better.
+
+The LS score is somewhat similar across all three models, but is lesser for the CcGAN models. This shows how the CcGAN models can leverage more of the dataset to create better fake images
 
 
---------------------------------------------------------
+### Example images (Dry_total_g = 95)
 
-# Sample Usage
-
-run `./scripts/run_train.sh` in the following folders. Remember to set correct root path, data path, and checkpoint path. <br />
-
-## Low-resolution experiments (64x64)
-Folders with name `CcGAN` are for the NLI-based CcGAN. Folders with name `CcGAN-improved` are for the ILI-based CcGAN. Foders with name `cGAN (concat)` are for the baseline cGAN (concat) [i.e., cGAN (concat) directly appends regression labels to the input of generator and the last hidden map of discriminator].
-
-### Simulation (`./Simulation`): The Circular 2D Gaussians experiment in our ICLR paper [1].
-
-### RC-49 (64x64) (`./RC-49/RC-49_64x64`)
-`./RC-49/RC-49_64x64/CcGAN`: Train AE and ResNet-34 for evaluation. Train cGAN (K classes) and NLI-based CcGAN. <br />
-`./RC-49/RC-49_64x64/CcGAN-improved`: Train cGAN (K classes) and ILI-based CcGAN. <br />
-`./RC-49/RC-49_64x64/cGAN-concat`: Train cGAN (concat). <br />
-
-### UTKFace (64x64) (`./UTKFace/UTKFace_64x64`)
-`./UTKFace/UTKFace_64x64/CcGAN`: Train AE and ResNet-34 for evaluation. Train cGAN (K classes) and NLI-based CcGAN. <br />
-`./UTKFace/UTKFace_64x64/CcGAN-improved`: Train cGAN (K classes) and ILI-based CcGAN. <br />
-`./UTKFace/UTKFace_64x64/cGAN-concat`: Train cGAN (concat). <br />
-
-### Cell-200 (64x64) (`./Cell-200/Cell-200_64x64`)
-`./Cell-200/Cell-200_64x64/CcGAN`: Train AE for evaluation. Train cGAN (K classes) and NLI-based CcGAN. <br />
-`./Cell-200/Cell-200_64x64/CcGAN-improved`: Train cGAN (K classes) and ILI-based CcGAN. <br />
-
-### Steering Angle (64x64) (`./SteeringAngle/SteeringAngle_64x64`)
-`./SteeringAngle/SteeringAngle_64x64/CcGAN`: Train AE and ResNet-34 for evaluation. Train cGAN (K classes) and NLI-based CcGAN. <br />
-`./SteeringAngle/SteeringAngle_64x64/CcGAN-improved`: Train cGAN (K classes) and ILI-based CcGAN. <br />
-`./SteeringAngle/SteeringAngle_64x64/cGAN-concat`: Train cGAN (concat). <br />
-
-## High-resolution experiments
-In high-resolution experiments, we only compare CcGAN (SVDL+ILI) with cGAN (K classes) and cGAN (concat). For all GANs, we use **SAGAN** [3] as the backbone. We also use **hinge loss** [2] and **DiffAugment** [4].
-
-### RC-49 (128x128)
-`./RC-49/RC-49_128x128\CcGAN-improved`: Train AE and ResNet-34 for evaluation. Train cGAN (K classes), cGAN (concat) and CcGAN (SVDL+ILI). <br />
-
-### RC-49 (256x256)
-`./RC-49/RC-49_256x256\CcGAN-improved`: Train AE and ResNet-34 for evaluation. Train cGAN (K classes), cGAN (concat) and CcGAN (SVDL+ILI). <br />
-
-### UTKFace (128x128)
-`./UTKFace/UTKFace_128x128\CcGAN-improved`: Train AE and ResNet-34 for evaluation. Train cGAN (K classes), cGAN (concat) and CcGAN (SVDL+ILI). <br />
-
-### UTKFace (192x192)
-`./UTKFace/UTKFace_192x192\CcGAN-improved`: Train AE and ResNet-34 for evaluation. Train cGAN (K classes), cGAN (concat) and CcGAN (SVDL+ILI). <br />
-
-### Steering Angle (128x128)
-`./SteeringAngle/SteeringAngle_128x128\CcGAN-improved`: Train AE and ResNet-34 for evaluation. Train cGAN (K classes), cGAN (concat) and CcGAN (SVDL+ILI). <br />
+| Actual Image | CcGAN (Soft) | CcGAN (Hard) | cGAN |
+| :---: | :---: | :---: | :---: |
+| ![Actual](images/compressed_95.jpg) | ![Soft](images/3769_95_soft.png) | ![Hard](images/3769_95_hard.png) | ![cGAN](images/3769_95_cgan.png)
 
 
---------------------------------------------------------
+Looking at these images, one can see that all the generated images look somewhat "pixelated". The worst offender is the cGAN generated image, where it seems like there are digital artifact left in the image.
+What none of the three techniques manged to capture was the "strands" of grass texture that makes the actual image look so "real".
 
-# Computing NIQE
-The code for computing NIQE is in `./NIQE`. Let's take RC-49_128x128 (in `./NIQE/RC-49/NIQE_128x128`) as an example. First, create a folder `./NIQE/RC-49/NIQE_128x128/fake_data` where we store the folder that concains fake images generated from a CcGAN or a cGAN. Second, rename the folder that contains fake images to `fake_images`, i.e., `./NIQE/RC-49/NIQE_128x128/fake_data/fake_images`. Third, unzip `./NIQE/RC-49/NIQE_128x128/models/unzip_this_file.zip` (containing pre-trained NIQE models). Fourth, run `./NIQE/RC-49/NIQE_128x128/run_test.bat`. Please note that in this directory, we only provide a Windows batch script to run the evaluation. Please modify it to fit Linux system.
+## Images generated across iterations
 
---------------------------------------------------------
+The code allows us to see images generated across iterations, but first, lets view some actual images of grass for reference. Below is a varied distribution of grass images from the training dataset.
 
-# Some Results
+![img](images/grass_grid_border.png)
 
-## Example fake images from CcGAN in high-resolution experiments
-<p align="center">
-  <img src="images/RC-49_128_fake_images_grid_10x10.png">
-  Example 128X128 fake RC-49 images generated by CcGAN (SVDL+ILI) with angles varying from 4.5 to 85.5 degrees (from top to bottom).
-</p>
-
-<p align="center">
-  <img src="images/UTKFace_192_fake_images_grid_10x10.png">
-  Example 192x192 fake UTKFace images generated by CcGAN (SVDL+ILI) with ages varying from 3 to 57 (from top to bottom).
-</p>
-
-<p align="center">
-  <img src="images/SteeringAngle_128_fake_images_grid_10x10.png">
-  Example 128x128 fake Steering Angle images generated by CcGAN (SVDL+ILI) with angles varying from -71.9 to 72 degrees (from top to bottom).
-</p>
-
-## Line graphs for low-resolution experiments
-<p align="center">
-  <img src="images/RC-49_line_graphs.png">
-  Line graphs for the RC-49 experiment.
-</p>
-
-<p align="center">
-  <img src="images/UTKFace_line_graphs.png">
-  Line graphs for the UTKFace experiment.
-</p>
-
-<p align="center">
-  <img src="images/Cell200_line_graphs.png">
-  Line graphs for the Cell-200 experiment.
-</p>
-
-<p align="center">
-  <img src="images/SteeringAngle_line_graphs.png">
-  Line graphs for the Steering Angle experiment.
-</p>
+### *Best model (CcGAN Soft)*
 
 
+| Iteration 100 | Iteration 1000 | Iteration 2000 |
+| :---: | :---: | :---: |
+| ![img](images/soft_100.png) | ![img2](images/soft_1000.png) | ![img3](images/soft_2000.png) |
+
+For instance at iteration 100, images created by the best model simply look like strange shadows.
+After 1000 iterations, the images become somewhat clearer. Finally, after 2000 images, the images are even better.
+
+From a distance, I may be fooled by some of images after 2000 iterations
+
+### *Worst model (cGAN)*
+
+| Iteration 100 | Iteration 1000 | Iteration 2000 |
+| :---: | :---: | :---: |
+| ![img](images/cgan_100.png) | ![img2](images/cgan_1000.png) | ![img3](images/cgan_2000.png) |
 
 
--------------------------------
-## References
-[1] Ding, Xin, et al. "CcGAN: Continuous Conditional Generative Adversarial Networks for Image Generation." International Conference on Learning Representations. 2021.  <br />
-[2] Lim, Jae Hyun, and Jong Chul Ye. "Geometric GAN." arXiv preprint arXiv:1705.02894 (2017).  <br />
-[3] Zhang, Han, et al. "Self-attention generative adversarial networks." International conference on machine learning. PMLR, 2019.  <br />
-[4] Zhao, Shengyu, et al. "Differentiable Augmentation for Data-Efficient GAN Training." Advances in Neural Information Processing Systems 33 (2020).  <br />
+At iteration 100, the images look like strange grids.
+After 1000 iterations, the images become somewhat better, the color is there, but the grid is not gone, and there is very little variation between images. Finally, after 2000 images, the images are better, but much worse compared to those generated by the CcGAN.
+
+I do not think any of these images could fool me to be grass.
+
+
+### Compared to original paper
+
+Experiments in the original paper [Ding et al., 2020], show impressively low FiD scores, as low as 0.087 on the UTKFace dataset. In comparison, scores acheived by me are quite a bit higher. Like mentioned earlier, the limitations of iterations done could be a leading factor of this performance difference. There is also some argument to thinking that this problem is "harder" since grass have very specific textures. At the same time, human faces are also so diverse and specific, that saying one problem is harder than the other is, at best, guesswork.
