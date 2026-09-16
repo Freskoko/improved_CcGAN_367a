@@ -1,7 +1,7 @@
 # CcGAN (Continous Conditional GAN)
     Author: Henrik Brøgger
 
-This is a fork of `https://github.com/UBCDingXin/improved_CcGAN`
+This is a fork of `https://github.com/UBCDingXin/improved_CcGAN`, this README has been updated to explain how to run this model and how it works.
 
 ### How to run
 
